@@ -1,0 +1,42 @@
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import AppLayout from './components/AppLayout'
+import Landing from './pages/Landing'
+import SignIn from './pages/SignIn'
+import Dashboard from './pages/Dashboard'
+import Symptoms from './pages/Symptoms'
+import Chat from './pages/Chat'
+import Reports from './pages/Reports'
+import Reminders from './pages/Reminders'
+import History from './pages/History'
+import Profile from './pages/Profile'
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
+export default function App() {
+  return (
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/app" element={<AppLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="symptoms" element={<Symptoms />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="reminders" element={<Reminders />} />
+          <Route path="history" element={<History />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  )
+}
