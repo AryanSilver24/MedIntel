@@ -30,7 +30,7 @@ export const env = {
     },
     gemini: {
       apiKey: str(process.env.GEMINI_API_KEY),
-      model: str(process.env.GEMINI_MODEL, 'gemini-2.0-flash'),
+      model: str(process.env.GEMINI_MODEL, 'gemini-flash-latest'),
       baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
     },
   },

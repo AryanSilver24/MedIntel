@@ -41,6 +41,16 @@ with only `MONGODB_URI` set; missing providers degrade, they do not crash.
 > Current default is `openai/gpt-oss-120b`. It is a reasoning model and takes 10–12 s per
 > call, which is why `AI_TIMEOUT_MS` defaults to 45000. `openai/gpt-oss-20b` is faster if you
 > would rather trade some quality for latency.
+>
+> Google retires models too — `gemini-2.0-flash` is already gone. `GEMINI_MODEL` therefore
+> defaults to the **alias** `gemini-flash-latest` rather than a pinned version: this is the
+> fallback provider, so surviving a retirement matters more than reproducible output. Pin a
+> specific version if you need determinism. List what your key can reach with:
+>
+> ```bash
+> curl -s "https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_API_KEY" \
+>   | jq -r '.models[] | select(.supportedGenerationMethods[]? == "generateContent") | .name'
+> ```
 
 ## The layers
 
