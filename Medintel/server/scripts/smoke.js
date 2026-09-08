@@ -361,15 +361,21 @@ async function main() {
   check('doctor has qualification and department', Boolean(hospDetails.data?.doctors?.[0]?.qualification), hospDetails.data?.doctors?.[0])
 
   const doctorToBook = hospDetails.data?.doctors?.[0]
-  const apptDate = new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
+  const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  let apptDateObj = new Date(Date.now() + 86400000 * 3)
+  while (doctorToBook.availableDays?.length && !doctorToBook.availableDays.includes(DAY_NAMES[apptDateObj.getUTCDay()])) {
+    apptDateObj = new Date(apptDateObj.getTime() + 86400000)
+  }
+  const apptDate = apptDateObj.toISOString().split('T')[0]
+  const testSlot = `04:${String(Math.floor(Math.random() * 40) + 10).padStart(2, '0')} PM`
   const booking = await call('POST', '/api/hospitals/appointments', {
-    body: { doctorId: doctorToBook.id, appointmentDate: apptDate, timeSlot: '11:00 AM', reason: 'Routine checkup' },
+    body: { doctorId: doctorToBook.id, appointmentDate: apptDate, timeSlot: testSlot, reason: 'Routine checkup' },
   })
   check('booking an appointment returns 201', booking.status === 201, booking.error)
   check('appointment status is initially Booked', booking.data?.status === 'Booked', booking.data?.status)
 
   const doubleBook = await call('POST', '/api/hospitals/appointments', {
-    body: { doctorId: doctorToBook.id, appointmentDate: apptDate, timeSlot: '11:00 AM', reason: 'Conflicting request' },
+    body: { doctorId: doctorToBook.id, appointmentDate: apptDate, timeSlot: testSlot, reason: 'Conflicting request' },
   })
   check('double booking same doctor and slot is rejected', doubleBook.status === 400 || doubleBook.status === 422, doubleBook.status)
 
@@ -398,13 +404,13 @@ async function main() {
   const hospAppts = await call('GET', '/api/hospitals/manage/appointments', { token: hospToken })
   check('hospital views incoming patient appointments', hospAppts.data?.length > 0, hospAppts.data?.length)
 
-  const apptToConfirm = hospAppts.data?.[0]?.id
+  const apptToConfirm = hospAppts.data?.find(a => a.status === 'Booked')?.id || hospAppts.data?.[0]?.id
   if (apptToConfirm) {
     const confirmAppt = await call('PATCH', `/api/hospitals/manage/appointments/${apptToConfirm}`, {
       token: hospToken,
       body: { status: 'Confirmed' },
     })
-    check('hospital confirms patient appointment', confirmAppt.data?.status === 'Confirmed', confirmAppt.data?.status)
+    check('hospital confirms patient appointment', confirmAppt.data?.status === 'Confirmed', confirmAppt.error || confirmAppt.data?.status)
   }
 
 

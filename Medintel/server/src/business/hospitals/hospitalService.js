@@ -7,8 +7,8 @@ import {
 import { NotFoundError, ForbiddenError, ValidationError } from '../../shared/errors.js'
 
 export const hospitalService = {
-  async searchHospitals({ city, department, name, limit = 20, skip = 0 }) {
-    const { items, total } = await hospitalRepository.search({ city, department, name, limit, skip })
+  async searchHospitals({ city, department, name, lat, lng, limit = 20, skip = 0 }) {
+    const { items, total } = await hospitalRepository.search({ city, department, name, lat, lng, limit, skip })
     const cities = await hospitalRepository.listCities()
     const departments = await hospitalRepository.listDepartments()
 
@@ -158,7 +158,7 @@ export const hospitalService = {
 
 function presentHospital(h) {
   return {
-    id: String(h._id),
+    id: String(h._id || h.id),
     userId: String(h.userId),
     name: h.name,
     type: h.type,
@@ -169,6 +169,7 @@ function presentHospital(h) {
     rating: h.rating,
     departments: h.departments || [],
     location: h.location,
+    distanceKm: h.distanceKm ?? null,
   }
 }
 

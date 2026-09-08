@@ -8,11 +8,43 @@ export default function HospitalsDirectory({ onSelectHospital }) {
   const [city, setCity] = useState('')
   const [department, setDepartment] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [userLocation, setUserLocation] = useState(null) // { lat, lng, label }
+  const [locating, setLocating] = useState(false)
 
-  const { data, loading, reload } = useApi(
-    () => api.hospitals.search({ city, department, name: searchQuery }),
-    [city, department, searchQuery]
+  const { data, loading } = useApi(
+    () =>
+      api.hospitals.search({
+        city,
+        department,
+        name: searchQuery,
+        lat: userLocation?.lat,
+        lng: userLocation?.lng,
+      }),
+    [city, department, searchQuery, userLocation?.lat, userLocation?.lng]
   )
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.')
+      return
+    }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          label: 'GPS Location Active',
+        })
+        setLocating(false)
+      },
+      (err) => {
+        setLocating(false)
+        alert('Could not retrieve your GPS location. Please check browser permissions.')
+      },
+      { timeout: 10000 }
+    )
+  }
 
   const hospitals = data?.hospitals ?? []
   const cities = data?.cities ?? []
@@ -31,7 +63,27 @@ export default function HospitalsDirectory({ onSelectHospital }) {
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <Button
+            type="button"
+            variant={userLocation ? 'primary' : 'secondary'}
+            onClick={handleDetectLocation}
+            disabled={locating}
+            className="h-10 text-[12.5px]"
+          >
+            {locating ? '📍 Locating...' : userLocation ? '📍 GPS Active' : '📍 Detect My Location'}
+          </Button>
+
+          {userLocation && (
+            <button
+              onClick={() => setUserLocation(null)}
+              className="text-[12px] text-muted hover:text-rose"
+              title="Clear GPS sorting"
+            >
+              ✕ Clear GPS
+            </button>
+          )}
+
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
@@ -60,6 +112,15 @@ export default function HospitalsDirectory({ onSelectHospital }) {
         </div>
       </div>
 
+      {userLocation && (
+        <div className="flex items-center gap-2 rounded-xl bg-teal-soft p-3 text-[12.5px] text-slate ring-1 ring-teal/20">
+          <Icon name="location" className="size-4 text-teal shrink-0" />
+          <span>
+            Showing nearest hospitals sorted by distance from your current GPS coordinates ({userLocation.lat.toFixed(3)}, {userLocation.lng.toFixed(3)}).
+          </span>
+        </div>
+      )}
+
       {loading ? (
         <div className="py-12 text-center text-[13px] text-muted">Searching nearby hospitals & clinics...</div>
       ) : hospitals.length === 0 ? (
@@ -77,9 +138,14 @@ export default function HospitalsDirectory({ onSelectHospital }) {
             >
               <div className="p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <Badge tone={h.type === 'Hospital' ? 'brand' : h.type === 'Clinic' ? 'teal' : 'amber'}>
-                    {h.type}
-                  </Badge>
+                  <div className="flex items-center gap-1.5">
+                    <Badge tone={h.type === 'Hospital' ? 'brand' : h.type === 'Clinic' ? 'teal' : 'amber'}>
+                      {h.type}
+                    </Badge>
+                    {h.distanceKm !== null && (
+                      <Badge tone="teal">📍 {h.distanceKm} km</Badge>
+                    )}
+                  </div>
                   <span className="flex items-center gap-1 text-[12px] font-semibold text-amber">
                     ★ {h.rating}
                   </span>

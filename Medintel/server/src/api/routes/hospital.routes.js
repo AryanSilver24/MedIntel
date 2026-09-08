@@ -12,13 +12,15 @@ hospitalRoutes.use(authenticate)
 hospitalRoutes.get(
   '/',
   handle(async (req, res) => {
-    const { city, department, name, limit, skip } = req.query
+    const { city, department, name, lat, lng, limit, skip } = req.query
     return ok(
       res,
       await hospitalService.searchHospitals({
         city,
         department,
         name,
+        lat: lat ? Number(lat) : undefined,
+        lng: lng ? Number(lng) : undefined,
         limit: Number(limit) || 20,
         skip: Number(skip) || 0,
       })

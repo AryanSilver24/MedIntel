@@ -27,12 +27,18 @@ export const appointmentService = {
     const hospital = await hospitalRepository.findById(doctor.hospitalId)
     if (!hospital) throw new NotFoundError('Hospital')
 
-    const dateObj = new Date(appointmentDate)
+    const dateStr = typeof appointmentDate === 'string'
+      ? appointmentDate.split('T')[0]
+      : new Date(appointmentDate).toISOString().split('T')[0]
+
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const dateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0))
+
     if (isNaN(dateObj.getTime())) {
       throw new ValidationError('Invalid appointment date')
     }
 
-    const dayName = DAY_NAMES[dateObj.getDay()]
+    const dayName = DAY_NAMES[dateObj.getUTCDay()]
     if (doctor.availableDays?.length > 0 && !doctor.availableDays.includes(dayName)) {
       throw new ValidationError(`Dr. ${doctor.name} is not available on ${dayName}s. Available days: ${doctor.availableDays.join(', ')}`)
     }

@@ -57,6 +57,17 @@ export const authService = {
       profile,
     })
 
+    if (role === 'hospital') {
+      await hospitalRepository.create({
+        userId: user._id,
+        name: name,
+        type: 'Hospital',
+        address: 'Set address in portal',
+        city: 'Bangalore',
+        departments: ['General Medicine'],
+      })
+    }
+
     await historyService.record({
       userId: user._id,
       kind: 'Account',

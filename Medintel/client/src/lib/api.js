@@ -176,8 +176,8 @@ export const api = {
   },
 
   hospitals: {
-    search: ({ city = '', department = '', name = '', limit = 20, skip = 0 } = {}) =>
-      get(`/api/hospitals?city=${encodeURIComponent(city)}&department=${encodeURIComponent(department)}&name=${encodeURIComponent(name)}&limit=${limit}&skip=${skip}`),
+    search: ({ city = '', department = '', name = '', lat = '', lng = '', limit = 20, skip = 0 } = {}) =>
+      get(`/api/hospitals?city=${encodeURIComponent(city)}&department=${encodeURIComponent(department)}&name=${encodeURIComponent(name)}&lat=${lat}&lng=${lng}&limit=${limit}&skip=${skip}`),
     getDetails: (id) => get(`/api/hospitals/${id}`),
     upcomingEvents: () => get('/api/hospitals/events/upcoming'),
     myAppointments: () => get('/api/hospitals/appointments/my'),

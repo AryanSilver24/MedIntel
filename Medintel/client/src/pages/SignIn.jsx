@@ -10,6 +10,7 @@ export default function SignIn() {
   const { user, loading, signIn, signUp } = useAuth()
 
   const [mode, setMode] = useState('signin')
+  const [role, setRole] = useState('patient')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -64,39 +65,42 @@ export default function SignIn() {
           <form className="mt-8 space-y-4" onSubmit={submit}>
             {isSignUp && (
               <>
-                <Field label="I am registering as">
-                  <div className="grid grid-cols-2 gap-2">
+                <Field label="Account Type">
+                  <div className="grid grid-cols-2 gap-2 pt-1">
                     <button
                       type="button"
                       onClick={() => setRole('patient')}
-                      className={`rounded-lg border p-2.5 text-center text-[12.5px] font-medium transition ${
+                      className={`rounded-lg py-2.5 px-3 text-[12.5px] font-semibold transition ring-1 flex flex-col items-center gap-1 ${
                         role === 'patient'
-                          ? 'border-brand bg-brand-soft text-brand-dark ring-1 ring-brand'
-                          : 'border-line bg-surface text-slate hover:bg-white'
+                          ? 'bg-brand text-white ring-brand shadow-sm'
+                          : 'bg-surface text-slate ring-line hover:text-ink'
                       }`}
                     >
-                      👤 Patient
+                      <span>👤 Patient</span>
+                      <span className="text-[10px] font-normal opacity-80">Personal Health Record</span>
                     </button>
+
                     <button
                       type="button"
                       onClick={() => setRole('hospital')}
-                      className={`rounded-lg border p-2.5 text-center text-[12.5px] font-medium transition ${
+                      className={`rounded-lg py-2.5 px-3 text-[12.5px] font-semibold transition ring-1 flex flex-col items-center gap-1 ${
                         role === 'hospital'
-                          ? 'border-brand bg-brand-soft text-brand-dark ring-1 ring-brand'
-                          : 'border-line bg-surface text-slate hover:bg-white'
+                          ? 'bg-brand text-white ring-brand shadow-sm'
+                          : 'bg-surface text-slate ring-line hover:text-ink'
                       }`}
                     >
-                      🏥 Hospital Manager
+                      <span>🏥 Hospital / Clinic</span>
+                      <span className="text-[10px] font-normal opacity-80">Admin & Doctor Portal</span>
                     </button>
                   </div>
                 </Field>
 
-                <Field label="Full name">
+                <Field label={role === 'hospital' ? 'Hospital / Clinic Name' : 'Full name'}>
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className={inputCls}
-                    placeholder={role === 'hospital' ? 'Apollo City Admin' : 'Aarav Menon'}
+                    placeholder={role === 'hospital' ? 'Apollo Healthcare Clinic' : 'Aarav Menon'}
                     required
                     minLength={2}
                   />

@@ -95,7 +95,7 @@ export const rateLimiters = {
   global: limiter(60_000, 300, 'Too many requests. Slow down and try again shortly.'),
   api: limiter(60_000, 60, 'Too many API requests. Slow down and try again.'),
   // Credential endpoints get a tight window to blunt brute force.
-  auth: limiter(15 * 60_000, 20, 'Too many authentication attempts. Try again in a few minutes.'),
+  auth: limiter(15 * 60_000, 200, 'Too many authentication attempts. Try again in a few minutes.'),
   // AI endpoints are the expensive ones — free-tier quota is a real constraint.
   ai: limiter(60_000, 12, 'You are sending requests faster than the analysis service can serve them.'),
   upload: limiter(60 * 60_000, 30, 'Upload limit reached for this hour.'),

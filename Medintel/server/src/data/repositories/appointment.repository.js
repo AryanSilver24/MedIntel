@@ -9,11 +9,9 @@ export const appointmentRepository = {
   },
 
   async findExistingSlot({ doctorId, appointmentDate, timeSlot }) {
-    // Normalize date to start of day for comparison if date object
-    const startOfDay = new Date(appointmentDate)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(appointmentDate)
-    endOfDay.setHours(23, 59, 59, 999)
+    const d = new Date(appointmentDate)
+    const startOfDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0))
+    const endOfDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999))
 
     return Appointment.findOne({
       doctorId,
