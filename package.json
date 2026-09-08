@@ -2,9 +2,10 @@
   "name": "medintel-monorepo",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "Medintel/server/src/index.js",
   "scripts": {
-    "build": "npm --prefix Medintel/server install",
+    "build": "cd Medintel/server && npm install",
     "start": "node Medintel/server/src/index.js"
   }
 }
