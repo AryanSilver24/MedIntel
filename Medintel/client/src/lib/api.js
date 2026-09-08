@@ -83,12 +83,16 @@ async function request(method, path, { body, isForm = false, retry = true } = {}
       method,
       headers,
       body: isForm ? body : body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(15000),
     })
-  } catch {
+  } catch (err) {
+    const isTimeout = err?.name === 'TimeoutError' || err?.name === 'AbortError'
     throw new ApiError({
       status: 0,
-      code: 'NETWORK_ERROR',
-      message: 'Cannot reach the MedIntel API. Is the server running?',
+      code: isTimeout ? 'TIMEOUT' : 'NETWORK_ERROR',
+      message: isTimeout
+        ? 'The request timed out. If the backend is on Render free tier, it may take ~30 seconds to wake up.'
+        : 'Cannot reach the MedIntel API. Is the server running?',
     })
   }
 
