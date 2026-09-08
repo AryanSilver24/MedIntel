@@ -7,7 +7,7 @@ import mongoose from 'mongoose'
 const timelineEventSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    kind: { type: String, enum: ['Triage', 'Chat', 'Report', 'Medication', 'Account'], required: true },
+    kind: { type: String, enum: ['Triage', 'Chat', 'Report', 'Medication', 'Account', 'Appointment'], required: true },
     tone: { type: String, enum: ['rose', 'amber', 'teal', 'brand'], default: 'brand' },
     title: { type: String, required: true },
     body: { type: String, default: '' },

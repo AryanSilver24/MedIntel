@@ -5,6 +5,7 @@ import { triageRoutes } from './triage.routes.js'
 import { chatRoutes } from './chat.routes.js'
 import { reportRoutes } from './report.routes.js'
 import { reminderRoutes } from './reminder.routes.js'
+import { hospitalRoutes } from './hospital.routes.js'
 import { historyService } from '../../business/history/historyService.js'
 import { profileService } from '../../business/profile/profileService.js'
 import { dashboardService } from '../../business/dashboardService.js'
@@ -26,6 +27,7 @@ api.use('/triage', triageRoutes)
 api.use('/chat', chatRoutes)
 api.use('/reports', reportRoutes)
 api.use('/reminders', reminderRoutes)
+api.use('/hospitals', hospitalRoutes)
 
 api.get(
   '/history',

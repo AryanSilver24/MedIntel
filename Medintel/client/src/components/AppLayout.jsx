@@ -8,6 +8,7 @@ const nav = [
   { to: '/app', label: 'Overview', icon: 'home', end: true },
   { to: '/app/symptoms', label: 'Symptom analysis', icon: 'pulse' },
   { to: '/app/chat', label: 'Health chat', icon: 'chat' },
+  { to: '/app/hospitals', label: 'Hospitals & Clinics', icon: 'shield' },
   { to: '/app/reports', label: 'Reports', icon: 'file' },
   { to: '/app/reminders', label: 'Reminders', icon: 'clock' },
   { to: '/app/history', label: 'History', icon: 'timeline' },

@@ -10,6 +10,7 @@ import Chat from './pages/Chat'
 import Reports from './pages/Reports'
 import Reminders from './pages/Reminders'
 import History from './pages/History'
+import HospitalsModule from './pages/hospitals'
 import Profile from './pages/Profile'
 
 function ScrollToTop() {
@@ -32,6 +33,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="symptoms" element={<Symptoms />} />
           <Route path="chat" element={<Chat />} />
+          <Route path="hospitals/*" element={<HospitalsModule />} />
           <Route path="reports" element={<Reports />} />
           <Route path="reminders" element={<Reminders />} />
           <Route path="history" element={<History />} />

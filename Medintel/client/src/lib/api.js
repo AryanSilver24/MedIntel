@@ -171,6 +171,24 @@ export const api = {
     acknowledge: (id, doseId, status) => post(`/api/reminders/${id}/doses/${doseId}`, { status }),
   },
 
+  hospitals: {
+    search: ({ city = '', department = '', name = '', limit = 20, skip = 0 } = {}) =>
+      get(`/api/hospitals?city=${encodeURIComponent(city)}&department=${encodeURIComponent(department)}&name=${encodeURIComponent(name)}&limit=${limit}&skip=${skip}`),
+    getDetails: (id) => get(`/api/hospitals/${id}`),
+    upcomingEvents: () => get('/api/hospitals/events/upcoming'),
+    myAppointments: () => get('/api/hospitals/appointments/my'),
+    bookAppointment: (payload) => post('/api/hospitals/appointments', payload),
+    cancelAppointment: (id) => patch(`/api/hospitals/appointments/${id}/cancel`),
+    myProfile: () => get('/api/hospitals/my-profile'),
+    updateMyProfile: (payload) => post('/api/hospitals/my-profile', payload),
+    addDoctor: (payload) => post('/api/hospitals/doctors', payload),
+    deleteDoctor: (id) => del(`/api/hospitals/doctors/${id}`),
+    addEvent: (payload) => post('/api/hospitals/events', payload),
+    deleteEvent: (id) => del(`/api/hospitals/events/${id}`),
+    managedAppointments: () => get('/api/hospitals/manage/appointments'),
+    updateAppointmentStatus: (id, status) => patch(`/api/hospitals/manage/appointments/${id}`, { status }),
+  },
+
   history: ({ limit = 50, skip = 0, kind } = {}) =>
     get(`/api/history?limit=${limit}&skip=${skip}${kind ? `&kind=${kind}` : ''}`),
 

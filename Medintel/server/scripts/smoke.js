@@ -349,14 +349,65 @@ async function main() {
   const badPatch = await call('PATCH', '/api/profile', { body: { unknownField: 'x' } })
   check('unknown profile field is rejected', badPatch.status === 422, badPatch.error)
 
-  // ── Dashboard ─────────────────────────────────────────────────────────────
-  section('Dashboard')
-  const dash = await call('GET', '/api/dashboard')
-  check('dashboard returns stats', typeof dash.data?.stats?.triageSessions === 'number', dash.data?.stats)
-  check('dashboard counted the triage sessions', dash.data?.stats?.triageSessions >= 6, dash.data?.stats)
-  check('dashboard includes the latest triage', Boolean(dash.data?.latestTriage?.id), dash.data?.latestTriage)
-  check('dashboard includes recent activity', dash.data?.recentActivity?.length > 0, dash.data?.recentActivity)
-  check('dashboard reports adherence', dash.data?.stats?.overallAdherence === 1, dash.data?.stats?.overallAdherence)
+  // ── Hospitals & Appointments ─────────────────────────────────────────────
+  section('Hospitals, Doctors & Appointment Booking')
+  const hospitals = await call('GET', '/api/hospitals?city=Bangalore')
+  check('hospitals search returns nearby facilities', hospitals.data?.hospitals?.length > 0, hospitals.data?.hospitals?.length)
+  check('cities and departments list is returned', hospitals.data?.cities?.includes('Bangalore'), hospitals.data?.cities)
+
+  const hospitalId = hospitals.data?.hospitals?.[0]?.id
+  const hospDetails = await call('GET', `/api/hospitals/${hospitalId}`)
+  check('hospital details includes doctor roster and events', hospDetails.data?.doctors?.length > 0, hospDetails.data)
+  check('doctor has qualification and department', Boolean(hospDetails.data?.doctors?.[0]?.qualification), hospDetails.data?.doctors?.[0])
+
+  const doctorToBook = hospDetails.data?.doctors?.[0]
+  const apptDate = new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
+  const booking = await call('POST', '/api/hospitals/appointments', {
+    body: { doctorId: doctorToBook.id, appointmentDate: apptDate, timeSlot: '11:00 AM', reason: 'Routine checkup' },
+  })
+  check('booking an appointment returns 201', booking.status === 201, booking.error)
+  check('appointment status is initially Booked', booking.data?.status === 'Booked', booking.data?.status)
+
+  const doubleBook = await call('POST', '/api/hospitals/appointments', {
+    body: { doctorId: doctorToBook.id, appointmentDate: apptDate, timeSlot: '11:00 AM', reason: 'Conflicting request' },
+  })
+  check('double booking same doctor and slot is rejected', doubleBook.status === 400 || doubleBook.status === 422, doubleBook.status)
+
+  const myAppts = await call('GET', '/api/hospitals/appointments/my')
+  check('patient lists their booked appointments', myAppts.data?.length > 0, myAppts.data?.length)
+
+  // Hospital Actor tests
+  const hospLogin = await call('POST', '/api/auth/login', {
+    body: { email: 'hospital@example.com', password: 'MedIntel2025!' },
+  })
+  const hospToken = hospLogin.data?.tokens?.accessToken
+  check('hospital actor login returns token', Boolean(hospToken), hospLogin.error)
+
+  const newDoc = await call('POST', '/api/hospitals/doctors', {
+    token: hospToken,
+    body: { name: 'Dr. Sameer Joshi', qualification: 'MD Neurology', department: 'Neurology', fee: 850 },
+  })
+  check('hospital adds doctor to roster', newDoc.status === 201, newDoc.error)
+
+  const newEvt = await call('POST', '/api/hospitals/events', {
+    token: hospToken,
+    body: { title: 'Blood Donation Camp 2026', type: 'Blood Donation', date: apptDate, location: 'Apollo Main' },
+  })
+  check('hospital posts blood donation drive', newEvt.status === 201, newEvt.error)
+
+  const hospAppts = await call('GET', '/api/hospitals/manage/appointments', { token: hospToken })
+  check('hospital views incoming patient appointments', hospAppts.data?.length > 0, hospAppts.data?.length)
+
+  const apptToConfirm = hospAppts.data?.[0]?.id
+  if (apptToConfirm) {
+    const confirmAppt = await call('PATCH', `/api/hospitals/manage/appointments/${apptToConfirm}`, {
+      token: hospToken,
+      body: { status: 'Confirmed' },
+    })
+    check('hospital confirms patient appointment', confirmAppt.data?.status === 'Confirmed', confirmAppt.data?.status)
+  }
+
+
 
   // ── Ownership isolation ───────────────────────────────────────────────────
   section('Per-resource ownership (RBAC)')

@@ -1,46 +1,224 @@
 /**
- * Seeds a demo account matching the mock data the frontend was designed against, so the
- * UI can be demonstrated without clicking through every flow first.
+ * Seeds demo accounts and sample hospital data so the UI can be demonstrated immediately.
  *
  *   npm run seed
  *
- * Safe to re-run: the demo user is deleted and recreated.
+ * Safe to re-run: existing demo accounts and sample hospital data are refreshed.
  */
 import bcrypt from 'bcryptjs'
 import { connectDatabase, disconnectDatabase } from '../src/data/db.js'
 import { initCache } from '../src/data/cache/index.js'
-import { User, TriageSession, Conversation, Report, Reminder, TimelineEvent } from '../src/data/models/index.js'
+import {
+  User,
+  TriageSession,
+  Conversation,
+  Report,
+  Reminder,
+  TimelineEvent,
+  Hospital,
+  Doctor,
+  HospitalEvent,
+  Appointment,
+} from '../src/data/models/index.js'
 import { logger } from '../src/shared/logger.js'
 
 const DEMO_EMAIL = 'aarav.menon@example.com'
 const DEMO_PASSWORD = 'MedIntel2025!'
 
+const HOSP_EMAIL = 'hospital@example.com'
+const HOSP_PASSWORD = 'MedIntel2025!'
+
 const daysAgo = (n) => new Date(Date.now() - n * 86400000)
+const daysAhead = (n) => new Date(Date.now() + n * 86400000)
 
 async function seed() {
   await connectDatabase()
   await initCache()
 
-  const existing = await User.findOne({ email: DEMO_EMAIL })
-  if (existing) {
-    await Promise.all([
-      TriageSession.deleteMany({ userId: existing._id }),
-      Conversation.deleteMany({ userId: existing._id }),
-      Report.deleteMany({ userId: existing._id }),
-      Reminder.deleteMany({ userId: existing._id }),
-      TimelineEvent.deleteMany({ userId: existing._id }),
-      User.deleteOne({ _id: existing._id }),
-    ])
-    logger.info('cleared existing demo account')
-  }
+  // 1. Clear existing demo data
+  await Promise.all([
+    User.deleteMany({ email: { $in: [DEMO_EMAIL, HOSP_EMAIL, 'apex@example.com', 'manipal@example.com'] } }),
+    Hospital.deleteMany({}),
+    Doctor.deleteMany({}),
+    HospitalEvent.deleteMany({}),
+    Appointment.deleteMany({}),
+    TriageSession.deleteMany({}),
+    Conversation.deleteMany({}),
+    Report.deleteMany({}),
+    Reminder.deleteMany({}),
+    TimelineEvent.deleteMany({}),
+  ])
 
+  logger.info('cleared existing demo accounts and sample hospitals')
+
+  // 2. Create Patient User
   const user = await User.create({
     name: 'Aarav Menon',
     email: DEMO_EMAIL,
     passwordHash: await bcrypt.hash(DEMO_PASSWORD, 10),
+    role: 'patient',
     profile: { age: 27, sex: 'Male', allergies: ['Penicillin', 'Dust mites'], conditions: ['Mild asthma'] },
   })
 
+  // 3. Create Hospital User & Hospital Record
+  const hospUser = await User.create({
+    name: 'Apollo City Hospital Admin',
+    email: HOSP_EMAIL,
+    passwordHash: await bcrypt.hash(HOSP_PASSWORD, 10),
+    role: 'hospital',
+  })
+
+  const apollo = await Hospital.create({
+    userId: hospUser._id,
+    name: 'Apollo City Hospital',
+    type: 'Hospital',
+    address: '154/11 Bannerghatta Main Road, Opp IIMB',
+    city: 'Bangalore',
+    phone: '+91 80 2630 4050',
+    emergencyPhone: '1066',
+    rating: 4.9,
+    departments: ['Cardiology', 'Neurology', 'Pediatrics', 'Orthopedics', 'General Medicine'],
+    location: { type: 'Point', coordinates: [77.597, 12.893] },
+  })
+
+  // Additional sample hospitals
+  const apexUser = await User.create({
+    name: 'Apex Clinic Manager',
+    email: 'apex@example.com',
+    passwordHash: await bcrypt.hash(HOSP_PASSWORD, 10),
+    role: 'hospital',
+  })
+
+  const apex = await Hospital.create({
+    userId: apexUser._id,
+    name: 'Apex Heart & Kidney Clinic',
+    type: 'Clinic',
+    address: '42 100 Feet Road, Indiranagar',
+    city: 'Bangalore',
+    phone: '+91 80 4115 8899',
+    emergencyPhone: '+91 80 4115 8800',
+    rating: 4.7,
+    departments: ['Cardiology', 'Nephrology', 'General Medicine'],
+    location: { type: 'Point', coordinates: [77.641, 12.978] },
+  })
+
+  const manipalUser = await User.create({
+    name: 'Manipal Admin',
+    email: 'manipal@example.com',
+    passwordHash: await bcrypt.hash(HOSP_PASSWORD, 10),
+    role: 'hospital',
+  })
+
+  const manipal = await Hospital.create({
+    userId: manipalUser._id,
+    name: 'Manipal Wellness Center',
+    type: 'Specialty Center',
+    address: '98 HAL Airport Road, Kodihalli',
+    city: 'Bangalore',
+    phone: '+91 80 2502 4444',
+    emergencyPhone: '105577',
+    rating: 4.8,
+    departments: ['Oncology', 'Dermatology', 'General Medicine'],
+    location: { type: 'Point', coordinates: [77.652, 12.958] },
+  })
+
+  // 4. Create Doctors
+  const doctors = await Doctor.insertMany([
+    {
+      hospitalId: apollo._id,
+      name: 'Dr. Ananya Rao',
+      qualification: 'MD, DM Cardiology (AIIMS)',
+      department: 'Cardiology',
+      experienceYears: 14,
+      availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+      availableTime: { start: '09:00', end: '13:00' },
+      fee: 800,
+    },
+    {
+      hospitalId: apollo._id,
+      name: 'Dr. Vikram Seth',
+      qualification: 'MS Orthopedics, FRCS (London)',
+      department: 'Orthopedics',
+      experienceYears: 18,
+      availableDays: ['Mon', 'Wed', 'Fri'],
+      availableTime: { start: '10:00', end: '16:00' },
+      fee: 900,
+    },
+    {
+      hospitalId: apollo._id,
+      name: 'Dr. Preeti Sharma',
+      qualification: 'MD Pediatrics, DCH',
+      department: 'Pediatrics',
+      experienceYears: 9,
+      availableDays: ['Tue', 'Thu', 'Sat'],
+      availableTime: { start: '11:00', end: '15:00' },
+      fee: 650,
+    },
+    {
+      hospitalId: apex._id,
+      name: 'Dr. Rajesh Nair',
+      qualification: 'MD, DM Nephrology',
+      department: 'Nephrology',
+      experienceYears: 12,
+      availableDays: ['Mon', 'Tue', 'Thu', 'Fri'],
+      availableTime: { start: '09:30', end: '14:00' },
+      fee: 750,
+    },
+    {
+      hospitalId: manipal._id,
+      name: 'Dr. Shalini Mehta',
+      qualification: 'MD Dermatology, DNB',
+      department: 'Dermatology',
+      experienceYears: 11,
+      availableDays: ['Mon', 'Wed', 'Sat'],
+      availableTime: { start: '10:00', end: '17:00' },
+      fee: 700,
+    },
+  ])
+
+  // 5. Create Hospital Events (Blood Donation, Stem Cell Drive, Marathon)
+  await HospitalEvent.insertMany([
+    {
+      hospitalId: apollo._id,
+      title: 'Annual Blood Donation Marathon 2026',
+      type: 'Blood Donation',
+      date: daysAhead(10),
+      time: '08:30 AM - 04:00 PM',
+      location: 'Apollo Auditorium, Ground Floor',
+      description: 'Join our annual community blood drive in partnership with Red Cross. Complimentary health screening provided for all donors.',
+    },
+    {
+      hospitalId: apollo._id,
+      title: 'Stem Cell Donor Registry & Awareness Drive',
+      type: 'Stem Cell Drive',
+      date: daysAhead(18),
+      time: '10:00 AM - 02:00 PM',
+      location: 'Main OPD Block',
+      description: 'Swab to save a life! Register as a potential stem cell donor for leukemia patients.',
+    },
+    {
+      hospitalId: apex._id,
+      title: 'Heart Health & Cardio Walkathon',
+      type: 'Marathon',
+      date: daysAhead(14),
+      time: '06:00 AM',
+      location: 'Indiranagar Club Ground',
+      description: '5 km walkathon promoting cardiovascular health and awareness. Free BP and ECG checks at the finish line.',
+    },
+  ])
+
+  // 6. Create Sample Appointment
+  await Appointment.create({
+    patientId: user._id,
+    hospitalId: apollo._id,
+    doctorId: doctors[0]._id,
+    appointmentDate: daysAhead(2),
+    timeSlot: '10:30 AM',
+    reason: 'Follow-up on recent respiratory symptoms and cardiac check',
+    status: 'Booked',
+  })
+
+  // 7. Standard patient history data (triage, conversation, reports, reminders)
   const triage = await TriageSession.create({
     userId: user._id,
     input: { text: 'Sore throat and mild fever, day three.', durationDays: 3, symptoms: ['sore_throat', 'fever'] },
@@ -49,28 +227,10 @@ async function seed() {
     confidence: 0.72,
     redFlags: [],
     conditions: [
-      {
-        name: 'Viral upper respiratory infection',
-        likelihood: 0.68,
-        note: 'Consistent with onset, fever pattern and absence of localised pain.',
-      },
-      {
-        name: 'Acute bacterial sinusitis',
-        likelihood: 0.21,
-        note: 'Consider if symptoms persist beyond 10 days or worsen after improvement.',
-      },
-      {
-        name: 'Seasonal allergic rhinitis',
-        likelihood: 0.11,
-        note: 'History of dust-mite allergy raises baseline probability.',
-      },
+      { name: 'Viral upper respiratory infection', likelihood: 0.68, note: 'Consistent with onset, fever pattern.' },
     ],
-    advice: [
-      'Rest and maintain fluid intake for the next 48 hours.',
-      'Monitor temperature twice daily and record it in your history.',
-      'Seek in-person care if breathing becomes difficult or fever exceeds 39 °C.',
-    ],
-    disclaimer: 'This is clinical decision support, not a diagnosis. It does not replace assessment by a qualified clinician.',
+    advice: ['Rest and maintain fluid intake.', 'Monitor temperature twice daily.'],
+    disclaimer: 'This is clinical decision support, not a diagnosis.',
     decidedBy: 'ai-assisted',
     aiProvider: 'seed',
     createdAt: daysAgo(5),
@@ -81,10 +241,10 @@ async function seed() {
     title: 'Follow-up conversation',
     lastMessageAt: daysAgo(1),
     messages: [
-      { from: 'bot', text: 'Good morning, Aarav. I have your session from 14 Aug on file — sore throat, mild fever, day three. How are you feeling today?' },
-      { from: 'user', text: 'Fever is gone but the cough is still there, mostly at night.' },
-      { from: 'bot', text: 'A residual night cough after a viral infection is common and can persist for one to three weeks. Since your fever has resolved, the trend is in the right direction.\n\nTwo things worth watching: any wheeze given your asthma history, and whether the cough starts producing coloured sputum.', provider: 'seed' },
-      { from: 'bot', text: 'This is clinical decision support, not a diagnosis. It does not replace assessment by a qualified clinician.', meta: true },
+      { from: 'bot', text: 'Good morning, Aarav. How are you feeling today?' },
+      { from: 'user', text: 'Fever is gone but the cough is still there.' },
+      { from: 'bot', text: 'Residual cough can persist for 1 to 3 weeks.', provider: 'seed' },
+      { from: 'bot', text: 'This is clinical decision support.', meta: true },
     ],
   })
 
@@ -96,24 +256,9 @@ async function seed() {
       reportDate: daysAgo(7),
       status: 'Summarised',
       tone: 'amber',
-      summary: 'Most values are within their reference ranges. One white-cell measurement sits slightly above the upper limit, which commonly accompanies a recent infection.',
-      findings: [
-        { label: 'Haemoglobin', value: '13.8', unit: 'g/dL', referenceRange: '13.0 - 17.0', flagged: false },
-        { label: 'WBC', value: '11.4', unit: 'x10^9/L', referenceRange: '4.0 - 11.0', flagged: true },
-        { label: 'Platelets', value: '250', unit: 'x10^9/L', referenceRange: '150 - 410', flagged: false },
-      ],
+      summary: 'WBC slightly above upper limit.',
+      findings: [{ label: 'WBC', value: '11.4', unit: 'x10^9/L', referenceRange: '4.0 - 11.0', flagged: true }],
       flags: 1,
-    },
-    {
-      userId: user._id,
-      name: 'Lipid Profile',
-      lab: 'Metropolis',
-      reportDate: daysAgo(48),
-      status: 'Summarised',
-      tone: 'teal',
-      summary: 'All measured values fall within their reference ranges.',
-      findings: [{ label: 'Total cholesterol', value: '168', unit: 'mg/dL', referenceRange: '< 200', flagged: false }],
-      flags: 0,
     },
   ])
 
@@ -124,38 +269,21 @@ async function seed() {
     time: '21:00',
     frequency: 'daily',
     startDate: daysAgo(52),
-    doses: Array.from({ length: 10 }, (_, i) => ({
-      scheduledFor: daysAgo(10 - i),
-      status: i === 3 ? 'missed' : 'taken',
-    })),
-  })
-
-  await Reminder.create({
-    userId: user._id,
-    drug: 'Vitamin D3',
-    dosage: '60000 IU',
-    time: '09:00',
-    frequency: 'weekly',
-    daysOfWeek: [0],
-    startDate: daysAgo(30),
-    doses: Array.from({ length: 5 }, (_, i) => ({
-      scheduledFor: daysAgo(28 - i * 7),
-      status: i === 1 ? 'missed' : 'taken',
-    })),
+    doses: Array.from({ length: 10 }, (_, i) => ({ scheduledFor: daysAgo(10 - i), status: 'taken' })),
   })
 
   await TimelineEvent.insertMany([
-    { userId: user._id, kind: 'Account', tone: 'brand', title: 'Account created', body: 'Your MedIntel health record starts here.', occurredAt: daysAgo(52) },
-    { userId: user._id, kind: 'Medication', tone: 'brand', title: 'Montelukast schedule created', body: 'Daily 21:00, ongoing. Adherence tracked from this date.', occurredAt: daysAgo(52), sourceId: reminder._id },
-    { userId: user._id, kind: 'Report', tone: 'teal', title: 'Lipid Profile uploaded', body: 'All values within reference range.', occurredAt: daysAgo(48), sourceId: reports[1]._id },
-    { userId: user._id, kind: 'Report', tone: 'amber', title: 'Complete Blood Count uploaded', body: 'One value outside reference range: WBC 11.4 x10^9/L.', occurredAt: daysAgo(7), sourceId: reports[0]._id },
-    { userId: user._id, kind: 'Triage', tone: 'teal', title: 'Symptom session — sore throat, fever', body: 'Routine urgency. Viral URI ranked highest at 68%.', occurredAt: daysAgo(5), sourceId: triage._id },
-    { userId: user._id, kind: 'Chat', tone: 'brand', title: 'Follow-up conversation', body: 'Residual night cough reviewed. No escalation triggered.', occurredAt: daysAgo(1), sourceId: convo._id },
+    { userId: user._id, kind: 'Account', tone: 'brand', title: 'Account created', body: 'MedIntel health record starts here.', occurredAt: daysAgo(52) },
+    { userId: user._id, kind: 'Medication', tone: 'brand', title: 'Montelukast schedule created', body: 'Daily 21:00.', occurredAt: daysAgo(52), sourceId: reminder._id },
+    { userId: user._id, kind: 'Report', tone: 'amber', title: 'Complete Blood Count uploaded', body: 'One value outside reference range: WBC 11.4.', occurredAt: daysAgo(7), sourceId: reports[0]._id },
+    { userId: user._id, kind: 'Triage', tone: 'teal', title: 'Symptom session — sore throat, fever', body: 'Routine urgency.', occurredAt: daysAgo(5), sourceId: triage._id },
+    { userId: user._id, kind: 'Appointment', tone: 'brand', title: 'Appointment booked with Dr. Ananya Rao', body: 'Apollo City Hospital · 10:30 AM', occurredAt: daysAgo(2) },
+    { userId: user._id, kind: 'Chat', tone: 'brand', title: 'Follow-up conversation', body: 'Residual cough reviewed.', occurredAt: daysAgo(1), sourceId: convo._id },
   ])
 
-  console.log('\n  Demo account seeded')
-  console.log(`     email:    ${DEMO_EMAIL}`)
-  console.log(`     password: ${DEMO_PASSWORD}\n`)
+  console.log('\n  Demo accounts & Hospitals seeded successfully:')
+  console.log(`     Patient:   ${DEMO_EMAIL} / ${DEMO_PASSWORD}`)
+  console.log(`     Hospital:  ${HOSP_EMAIL} / ${HOSP_PASSWORD}\n`)
 
   await disconnectDatabase()
   process.exit(0)
