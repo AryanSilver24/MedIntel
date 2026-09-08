@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: medintel-api
+    env: node
+    plan: free
+    rootDir: Medintel/server
+    buildCommand: npm install
+    startCommand: node src/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        value: https://aryansilver24.github.io
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
