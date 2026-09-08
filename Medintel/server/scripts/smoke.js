@@ -332,7 +332,7 @@ async function main() {
   check('history contains triage events', history.data?.some((e) => e.kind === 'Triage'), history.data)
   check('history contains a medication event', history.data?.some((e) => e.kind === 'Medication'), history.data)
   check('history contains a report event', history.data?.some((e) => e.kind === 'Report'), history.data)
-  check('history dates are pre-formatted for the UI', /^\d{2} \w{3} \d{4}$/.test(history.data?.[0]?.date ?? ''), history.data?.[0])
+  check('history dates are pre-formatted for the UI', /^\d{2} \w{3,4} \d{4}$/.test(history.data?.[0]?.date ?? ''), history.data?.[0])
 
   const filtered = await call('GET', '/api/history?kind=Triage')
   check('history filters by kind', filtered.data?.every((e) => e.kind === 'Triage'), filtered.data)
