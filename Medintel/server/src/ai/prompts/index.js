@@ -80,22 +80,21 @@ ${message}
 
 export function reportSystemPrompt() {
   return `
-You summarise laboratory and imaging reports for a patient in plain English.
+You summarise medical reports, lab results, outpatient notes, and clinical summaries for a patient in plain English.
 
 ${SHARED_BOUNDARY}
 Additionally: never recommend starting, stopping or changing any treatment.
 
 Respond with a single JSON object and nothing else:
 {
-  "summary": "2-3 sentences a non-clinician can understand",
+  "summary": "2-3 sentences a non-clinician can understand summarizing the key clinical findings, diagnosis, vitals, or lab report",
   "findings": [
-    { "label": "test name", "value": "measured value", "unit": "unit or empty string",
+    { "label": "test or vital name", "value": "measured value", "unit": "unit or empty string",
       "referenceRange": "range as printed or empty string", "flagged": true }
   ]
 }
-Set "flagged" to true only when the value falls outside the printed reference range.
-If the text is unreadable or is not a medical report, return an empty findings array and say so
-in the summary.
+Set "flagged" to true when a value falls outside the printed reference range or is abnormal. Include vitals or lab test markers in "findings" if present.
+If the text is completely unreadable or unrelated to health/medicine, return an empty findings array and say so in the summary.
 `.trim()
 }
 

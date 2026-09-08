@@ -84,7 +84,19 @@ export const reportService = {
       })
       logger.info('report text extracted', { reportId, provider, chars: text.length })
 
-      const ai = await aiService.summariseReport({ text, actorId: userId })
+      let ai = null
+      if (aiService.available()) {
+        try {
+          ai = await aiService.summariseReport({ text, actorId: userId })
+        } catch (err) {
+          logger.warn('ai report summarisation failed; falling back to text parser', { err: err.message })
+        }
+      }
+
+      if (!ai) {
+        ai = fallbackReportSummary(text)
+      }
+
       const flags = ai.findings.filter((f) => f.flagged).length
 
       await reportRepository.update(reportId, {
@@ -110,10 +122,49 @@ export const reportService = {
       await reportRepository.update(reportId, {
         status: 'Failed',
         tone: 'rose',
-        failureReason: ocrAvailable() ? err.message : 'No OCR provider is configured (set OCR_SPACE_API_KEY).',
+        failureReason: ocrAvailable() ? err.message : 'No OCR provider is configured for PDF/Image files (set OCR_SPACE_API_KEY).',
       })
     }
   },
+}
+
+function fallbackReportSummary(text) {
+  const lines = text.split('\n')
+  const findings = []
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim()
+    if (
+      !line ||
+      line.startsWith('---') ||
+      line.startsWith('PATIENT') ||
+      line.startsWith('LAB') ||
+      line.startsWith('AGE') ||
+      line.startsWith('DATE')
+    )
+      continue
+    const match = line.match(/^([^:]+):\s*([\d\.]+)\s*([^\(\[\n]*)(?:\((?:Ref Range:|Ref:)\s*([^\)]+)\))?\s*(.*)$/i)
+    if (match) {
+      const label = match[1].trim()
+      const value = match[2].trim()
+      const unit = (match[3] || '').trim()
+      const referenceRange = (match[4] || '').trim()
+      const flagged = /flagged|high|low|abnormal/i.test(match[5] || '') || /flagged|high|low|abnormal/i.test(line)
+      findings.push({ label, value, unit, referenceRange, flagged })
+    }
+  }
+
+  const flagsCount = findings.filter((f) => f.flagged).length
+  const summary =
+    findings.length > 0
+      ? `Report text extracted successfully (${findings.length} marker(s) identified). ${
+          flagsCount > 0
+            ? `${flagsCount} value(s) flagged outside reference range.`
+            : 'All identified values are within normal reference ranges.'
+        }`
+      : `Report text extracted successfully (${text.slice(0, 150)}…). Discuss these results with your physician.`
+
+  return { summary, findings }
 }
 
 function present(r) {

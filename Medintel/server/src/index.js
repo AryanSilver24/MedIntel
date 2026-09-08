@@ -6,6 +6,7 @@ import { jobQueue, JOBS } from './data/queue/index.js'
 import { reportService } from './business/reports/reportService.js'
 import { reminderService } from './business/reminders/reminderService.js'
 import { startScheduler, stopScheduler } from './business/reminders/scheduler.js'
+import { autoSeedIfNeeded } from './data/autoSeed.js'
 import { createApp } from './api/app.js'
 
 /**
@@ -17,6 +18,7 @@ async function bootstrap() {
 
   await connectDatabase()
   await initCache()
+  await autoSeedIfNeeded()
 
   // Register async job handlers before anything can enqueue work (ADR-06).
   jobQueue.register(JOBS.PROCESS_REPORT, (payload) => reportService.processReport(payload))

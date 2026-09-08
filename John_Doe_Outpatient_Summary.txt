@@ -1,0 +1,40 @@
+CLINICAL OUTPATIENT SUMMARY
+============================================================
+Patient Name: John Doe
+Date of Birth: 1988-04-12
+Gender: Male
+Encounter Date: 2026-09-08
+Attending Physician: Dr. Sarah Bennett, MD
+Department: Internal Medicine
+
+VITAL SIGNS
+------------------------------------------------------------
+Blood Pressure: 124/80 mmHg
+Heart Rate: 72 bpm
+Respiratory Rate: 16 breaths/min
+Body Temperature: 98.4 F (36.9 C)
+Oxygen Saturation (SpO2): 99% on room air
+BMI: 23.8 kg/m2
+
+CHIEF COMPLAINT
+------------------------------------------------------------
+Annual wellness exam and mild seasonal allergies.
+
+CLINICAL IMPRESSION & FINDINGS
+------------------------------------------------------------
+- HEENT: Mild nasal mucosal erythema and clear rhinorrhea. Oropharynx clear.
+- Cardiovascular: Regular rate and rhythm, normal S1/S2, no murmurs.
+- Respiratory: Clear to auscultation bilaterally, no wheezing or rales.
+- Abdomen: Soft, non-tender, non-distended, normal bowel sounds.
+
+DIAGNOSIS
+------------------------------------------------------------
+1. Allergic rhinitis, unspecified (ICD-10: J30.9)
+2. Routine health examination (ICD-10: Z00.00)
+
+TREATMENT PLAN & ORDERS
+------------------------------------------------------------
+- Cetirizine 10 mg orally once daily as needed for allergy symptoms.
+- Saline nasal spray 1-2 sprays per nostril twice daily.
+- Routine lipid and metabolic panel drawn today; follow-up via portal.
+- Return to clinic in 12 months for routine annual checkup or sooner if symptoms worsen.
