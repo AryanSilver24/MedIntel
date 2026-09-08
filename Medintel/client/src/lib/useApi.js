@@ -37,7 +37,15 @@ export function useApi(fetcher, deps = []) {
     run()
   }, deps)
 
-  return { ...state, reload: run, setData: (data) => setState((s) => ({ ...s, data })) }
+  return {
+    ...state,
+    reload: run,
+    setData: (updater) =>
+      setState((s) => ({
+        ...s,
+        data: typeof updater === 'function' ? updater(s.data) : updater,
+      })),
+  }
 }
 
 /** For actions (submit, delete) rather than reads: tracks pending + error for one call. */

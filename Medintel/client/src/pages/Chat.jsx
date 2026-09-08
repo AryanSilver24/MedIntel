@@ -81,7 +81,7 @@ export default function Chat() {
       <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr] lg:items-start">
         <Card className="flex h-[calc(100vh-13rem)] max-h-[620px] min-h-[440px] flex-col">
           <CardHead
-            title={conversation ? `Conversation ${conversation.id.slice(-6)}` : 'Health chat'}
+            title={conversation?.id ? `Conversation ${conversation.id.slice(-6)}` : 'Health chat'}
             sub={
               latestTriage.data
                 ? `Context: session from ${new Date(latestTriage.data.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`
