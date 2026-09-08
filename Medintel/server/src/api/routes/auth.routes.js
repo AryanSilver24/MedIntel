@@ -11,8 +11,8 @@ authRoutes.post(
   rateLimiters.auth,
   validate(schemas.register),
   handle(async (req, res) => {
-    const { name, email, password, ...profile } = req.body
-    const result = await authService.register({ name, email, password, profile }, req.ip)
+    const { name, email, password, role = 'patient', ...profile } = req.body
+    const result = await authService.register({ name, email, password, role, profile }, req.ip)
     return created(res, result)
   })
 )

@@ -45,7 +45,7 @@ function publicUser(user) {
 export const authService = {
   publicUser,
 
-  async register({ name, email, password, profile = {} }, ip) {
+  async register({ name, email, password, role = 'patient', profile = {} }, ip) {
     const existing = await userRepository.findByEmail(email)
     if (existing) throw new ConflictError('An account with that email already exists')
 
@@ -53,6 +53,7 @@ export const authService = {
       name,
       email: String(email).toLowerCase(),
       passwordHash: await bcrypt.hash(password, ROUNDS),
+      role,
       profile,
     })
 

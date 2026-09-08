@@ -13,6 +13,7 @@ export default function SignIn() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [role, setRole] = useState('patient')
   const [error, setError] = useState(null)
   const [pending, setPending] = useState(false)
 
@@ -25,7 +26,7 @@ export default function SignIn() {
     setError(null)
     setPending(true)
     try {
-      if (isSignUp) await signUp({ name, email, password })
+      if (isSignUp) await signUp({ name, email, password, role })
       else await signIn({ email, password })
       navigate('/app', { replace: true })
     } catch (err) {
@@ -62,16 +63,45 @@ export default function SignIn() {
 
           <form className="mt-8 space-y-4" onSubmit={submit}>
             {isSignUp && (
-              <Field label="Full name">
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={inputCls}
-                  placeholder="Aarav Menon"
-                  required
-                  minLength={2}
-                />
-              </Field>
+              <>
+                <Field label="I am registering as">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRole('patient')}
+                      className={`rounded-lg border p-2.5 text-center text-[12.5px] font-medium transition ${
+                        role === 'patient'
+                          ? 'border-brand bg-brand-soft text-brand-dark ring-1 ring-brand'
+                          : 'border-line bg-surface text-slate hover:bg-white'
+                      }`}
+                    >
+                      👤 Patient
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole('hospital')}
+                      className={`rounded-lg border p-2.5 text-center text-[12.5px] font-medium transition ${
+                        role === 'hospital'
+                          ? 'border-brand bg-brand-soft text-brand-dark ring-1 ring-brand'
+                          : 'border-line bg-surface text-slate hover:bg-white'
+                      }`}
+                    >
+                      🏥 Hospital Manager
+                    </button>
+                  </div>
+                </Field>
+
+                <Field label="Full name">
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className={inputCls}
+                    placeholder={role === 'hospital' ? 'Apollo City Admin' : 'Aarav Menon'}
+                    required
+                    minLength={2}
+                  />
+                </Field>
+              </>
             )}
 
             <Field label="Email">

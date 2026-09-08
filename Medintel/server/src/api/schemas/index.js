@@ -12,6 +12,7 @@ export const schemas = {
         name: z.string().trim().min(2).max(80),
         email: z.email().max(160),
         password: z.string().min(8, 'Password must be at least 8 characters').max(128),
+        role: z.enum(['patient', 'hospital']).default('patient'),
         age: z.number().int().min(0).max(130).optional(),
         sex: z.enum(['Male', 'Female', 'Other', 'Prefer not to say']).optional(),
         allergies: z.array(z.string().trim().min(1).max(60)).max(30).optional(),
