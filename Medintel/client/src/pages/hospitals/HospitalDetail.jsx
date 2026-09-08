@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import Icon from '../../components/Icon'
-import { Card, CardHead, Badge, Button } from '../../components/ui'
+import { Card, Badge, Button } from '../../components/ui'
 import { useApi } from '../../lib/useApi'
 import { api } from '../../lib/api'
 import BookingForm from './BookingForm'
 
 export default function HospitalDetail({ hospitalId, onBack, onBookedSuccess }) {
-  const { data, loading, error, reload } = useApi(() => api.hospitals.getDetails(hospitalId), [hospitalId])
+  const { data, loading, error } = useApi(() => api.hospitals.getDetails(hospitalId), [hospitalId])
   const [selectedDoctor, setSelectedDoctor] = useState(null)
   const [activeTab, setActiveTab] = useState('doctors')
 

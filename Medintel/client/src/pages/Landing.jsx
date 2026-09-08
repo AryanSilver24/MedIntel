@@ -10,6 +10,7 @@ const modules = [
   { n: '04', title: 'Report upload', body: 'PDF and image upload, OCR extraction off the request path, and a plain-language summary of key values attached to the timeline.' },
   { n: '05', title: 'Medicine reminders', body: 'Dose schedules driven by recurring jobs, delivered by push or e-mail, with a taken-or-missed adherence log.' },
   { n: '06', title: 'Medical history', body: 'One chronological timeline of sessions, reports and medication — exportable for a real consultation.' },
+  { n: '07', title: 'Hospitals & appointments', body: 'GPS-powered discovery of nearby clinics, doctor rosters & qualifications, blood donation marathons, and direct appointment scheduling.' },
 ]
 
 const layers = [
@@ -72,7 +73,7 @@ export default function Landing() {
 
           <div className="mt-16 grid max-w-3xl grid-cols-2 gap-x-8 gap-y-6 border-t border-line pt-8 sm:grid-cols-4">
             {[
-              ['6', 'functional modules'],
+              ['7', 'functional modules'],
               ['5', 'architectural layers'],
               ['7', 'stage AI pipeline'],
               ['0', 'AI-owned escalations'],
@@ -89,7 +90,7 @@ export default function Landing() {
       <section id="modules" className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <p className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-brand">Scope — version 1.0</p>
         <h2 className="mt-3 max-w-xl text-[32px] font-semibold tracking-[-0.03em] text-ink">
-          Six modules, one product surface.
+          Seven modules, one product surface.
         </h2>
         <div className="mt-12 grid gap-px overflow-hidden rounded-xl bg-line ring-1 ring-line sm:grid-cols-2 lg:grid-cols-3">
           {modules.map((m) => (

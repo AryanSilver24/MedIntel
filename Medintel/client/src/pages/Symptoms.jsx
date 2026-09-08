@@ -335,7 +335,24 @@ export default function Symptoms() {
                   ))}
                 </ul>
 
-                <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-line bg-surface p-3.5">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/20 bg-brand-soft/40 p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="grid size-9 place-items-center rounded-lg bg-brand text-white shrink-0">
+                      <Icon name="shield" className="size-5" />
+                    </span>
+                    <div>
+                      <p className="text-[13.5px] font-semibold text-ink">Need clinical evaluation?</p>
+                      <p className="text-[12px] text-slate">
+                        Find verified nearby clinics, specialists & emergency helplines.
+                      </p>
+                    </div>
+                  </div>
+                  <Button as="link" to="/app/hospitals" size="sm" variant="dark">
+                    Nearby Hospitals <Icon name="arrow" className="size-3.5" />
+                  </Button>
+                </div>
+
+                <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-line bg-surface p-3.5">
                   <Icon name="alert" className="mt-px size-4 shrink-0 text-amber" />
                   <p className="text-[12.5px] leading-relaxed text-slate">{result.disclaimer}</p>
                 </div>
@@ -358,7 +375,7 @@ export default function Symptoms() {
               </Button>
             )}
             {step === 2 && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -367,6 +384,9 @@ export default function Symptoms() {
                   }}
                 >
                   New session
+                </Button>
+                <Button as="link" to="/app/hospitals" variant="secondary">
+                  Find Hospitals
                 </Button>
                 <Button as="link" to="/app/chat">
                   Discuss in chat <Icon name="arrow" className="size-4" />

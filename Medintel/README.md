@@ -32,7 +32,7 @@ no upward imports.
 | 2     | API           | `server/src/api` — JWT + refresh rotation, zod, rate limiting |
 | 3     | Business      | `server/src/business` — 20-rule triage engine, safety rules   |
 | 4     | AI Service    | `server/src/ai` — 7-stage pipeline, provider failover, circuit breakers |
-| 5     | Data Access   | `server/src/data` — 7 models, 7 repositories, cache, job queue |
+| 5     | Data Access   | `server/src/data` — 11 models, 11 repositories, cache, job queue |
 
 The emergency path short-circuits at Layer 3 and makes **zero** model calls.
 
@@ -41,21 +41,27 @@ The emergency path short-circuits at Layer 3 and makes **zero** model calls.
 | Route             | Module | Screen                                    |
 | ----------------- | ------ | ----------------------------------------- |
 | `/`               | —      | Marketing / architecture overview          |
-| `/signin`         | 01     | Authentication                             |
+| `/signin`         | 01     | Authentication (Patient & Hospital roles)  |
 | `/app`            | —      | Overview dashboard                         |
 | `/app/symptoms`   | 02     | Symptom analysis (3-step intake + result)  |
 | `/app/chat`       | 03     | AI health chat                             |
 | `/app/reports`    | 04     | Report upload + extracted values           |
 | `/app/reminders`  | 05     | Medicine schedules + adherence log         |
 | `/app/history`    | 06     | Unified timeline                           |
+| `/app/hospitals`  | 07     | Nearby hospitals, doctors & direct booking |
 | `/app/profile`    | 01     | Profile, clinical background, security     |
+
+## Demo Accounts
+
+- **Patient Demo**: `aarav.menon@example.com` / `MedIntel2025!`
+- **Hospital Admin Demo**: `hospital@example.com` / `MedIntel2025!`
 
 ## Tests
 
 ```bash
 cd server
 npm test        # 126 rules + safety unit tests, no DB needed
-npm run test:api  # ~90 end-to-end assertions, needs the server running
+npm run test:api  # 118 end-to-end assertions, needs the server running
 ```
 
 Design tokens (colour, shadow, font) live in the `@theme` block at the top of

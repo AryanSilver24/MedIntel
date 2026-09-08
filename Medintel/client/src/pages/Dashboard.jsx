@@ -5,11 +5,6 @@ import { api } from '../lib/api'
 import { useApi } from '../lib/useApi'
 import { useAuth } from '../lib/auth'
 
-const shortcuts = [
-  { to: '/app/symptoms', icon: 'pulse', title: 'Start a symptom session', body: 'Structured intake, rules first, AI second.' },
-  { to: '/app/chat', icon: 'chat', title: 'Ask a follow-up', body: 'Context-aware chat over your history.' },
-  { to: '/app/reports', icon: 'upload', title: 'Upload a report', body: 'PDF or image — OCR runs in the background.' },
-]
 
 function greeting() {
   const h = new Date().getHours()
@@ -23,6 +18,25 @@ export default function Dashboard() {
   const { data, loading, error, reload } = useApi(() => api.dashboard(), [])
   const reminders = useApi(() => api.reminders.list(), [])
   const rules = useApi(() => api.triage.rules(), [])
+  const appointments = useApi(
+    () => (user?.role === 'hospital' ? api.hospitals.managedAppointments() : api.hospitals.myAppointments()),
+    [user?.role]
+  )
+
+  const shortcuts =
+    user?.role === 'hospital'
+      ? [
+          { to: '/app/hospitals', icon: 'shield', title: 'Hospital Management', body: 'Review bookings, manage doctor roster & post camps.' },
+          { to: '/app/chat', icon: 'chat', title: 'Clinical Decision Chat', body: 'Context-aware AI decision support.' },
+          { to: '/app/history', icon: 'timeline', title: 'Audit Timeline', body: 'Log of triage, reports & medication events.' },
+          { to: '/app/profile', icon: 'user', title: 'Account Settings', body: 'Security & login credentials.' },
+        ]
+      : [
+          { to: '/app/symptoms', icon: 'pulse', title: 'Start a symptom session', body: 'Structured intake, rules first, AI second.' },
+          { to: '/app/hospitals', icon: 'shield', title: 'Hospitals & Appointments', body: 'Find nearby clinics, view doctors & book visits.' },
+          { to: '/app/chat', icon: 'chat', title: 'Ask a follow-up', body: 'Context-aware chat over your history.' },
+          { to: '/app/reports', icon: 'upload', title: 'Upload a report', body: 'PDF or image — OCR runs in the background.' },
+        ]
 
   const markTaken = async (reminder) => {
     if (!reminder.nextDoseId) return
@@ -163,6 +177,40 @@ export default function Dashboard() {
             )}
           </Card>
 
+          {appointments.data?.length > 0 && (
+            <Card>
+              <CardHead
+                title={user?.role === 'hospital' ? 'Incoming Appointments' : 'Booked Consultations'}
+                sub={user?.role === 'hospital' ? 'Patient bookings' : 'Upcoming doctor visits'}
+                action={
+                  <Link to="/app/hospitals" className="text-[12.5px] font-medium text-brand hover:text-brand-dark">
+                    Manage
+                  </Link>
+                }
+              />
+              <ul className="divide-y divide-line">
+                {appointments.data.slice(0, 2).map((appt) => (
+                  <li key={appt.id} className="p-4 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Badge tone={appt.status === 'Confirmed' ? 'teal' : appt.status === 'Completed' ? 'brand' : 'amber'}>
+                        {appt.status}
+                      </Badge>
+                      <span className="text-[12px] font-medium text-slate">
+                        {new Date(appt.appointmentDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} • {appt.timeSlot}
+                      </span>
+                    </div>
+                    <p className="text-[13.5px] font-semibold text-ink">
+                      {user?.role === 'hospital' ? appt.patientName : `Dr. ${appt.doctorName}`}
+                    </p>
+                    <p className="text-[12px] text-muted">
+                      {user?.role === 'hospital' ? `With Dr. ${appt.doctorName} (${appt.department})` : appt.hospitalName}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
           <Card>
             <CardHead title="Red-flag rules" sub="Evaluated before any AI call" />
             <ul className="divide-y divide-line">
@@ -184,7 +232,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-px overflow-hidden rounded-xl bg-line ring-1 ring-line sm:grid-cols-3">
+      <div className="mt-6 grid gap-px overflow-hidden rounded-xl bg-line ring-1 ring-line sm:grid-cols-2 lg:grid-cols-4">
         {shortcuts.map((sc) => (
           <Link key={sc.to} to={sc.to} className="group bg-white px-5 py-5 transition-colors hover:bg-surface">
             <span className="grid size-8 place-items-center rounded-lg bg-brand-soft text-brand">

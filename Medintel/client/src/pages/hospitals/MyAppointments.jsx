@@ -25,6 +25,19 @@ export default function MyAppointments() {
     return <div className="py-12 text-center text-[13px] text-muted">Loading your appointments...</div>
   }
 
+  if (error) {
+    return (
+      <Card className="p-12 text-center">
+        <Icon name="alert" className="mx-auto size-8 text-rose" />
+        <h3 className="mt-2 text-[15px] font-semibold text-ink">Failed to load appointments</h3>
+        <p className="mt-1 text-[13px] text-muted">{error.message}</p>
+        <Button variant="secondary" size="sm" onClick={reload} className="mt-4">
+          Try again
+        </Button>
+      </Card>
+    )
+  }
+
   const items = appointments ?? []
 
   return (

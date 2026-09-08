@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Icon from '../../components/Icon'
 import { Card, CardHead, Badge, Button } from '../../components/ui'
 import { useApi } from '../../lib/useApi'
@@ -28,15 +28,42 @@ export default function HospitalPortal() {
   const [postingEvt, setPostingEvt] = useState(false)
 
   // Profile edit state
+  const [hospName, setHospName] = useState('')
+  const [hospType, setHospType] = useState('Hospital')
+  const [hospAddress, setHospAddress] = useState('')
+  const [hospCity, setHospCity] = useState('Bangalore')
   const [phone, setPhone] = useState('')
   const [emergPhone, setEmergPhone] = useState('')
-
-  if (loading) return <div className="py-12 text-center text-[13px] text-muted">Loading Hospital Portal...</div>
+  const [deptInput, setDeptInput] = useState('')
+  const [lat, setLat] = useState('12.9716')
+  const [lng, setLng] = useState('77.5946')
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileSuccess, setProfileSuccess] = useState(false)
+  const [initDone, setInitDone] = useState(false)
 
   const hospital = data?.hospital
   const doctors = data?.doctors ?? []
   const events = data?.events ?? []
   const appointments = managedAppts ?? []
+
+  useEffect(() => {
+    if (hospital && !initDone) {
+      setHospName(hospital.name || '')
+      setHospType(hospital.type || 'Hospital')
+      setHospAddress(hospital.address || '')
+      setHospCity(hospital.city || 'Bangalore')
+      setPhone(hospital.phone || '')
+      setEmergPhone(hospital.emergencyPhone || '')
+      setDeptInput((hospital.departments || []).join(', '))
+      if (hospital.location?.coordinates) {
+        setLng(String(hospital.location.coordinates[0]))
+        setLat(String(hospital.location.coordinates[1]))
+      }
+      setInitDone(true)
+    }
+  }, [hospital, initDone])
+
+  if (loading) return <div className="py-12 text-center text-[13px] text-muted">Loading Hospital Portal...</div>
 
   const handleAddDoctor = async (e) => {
     e.preventDefault()
@@ -113,6 +140,54 @@ export default function HospitalPortal() {
     }
   }
 
+  const handleSaveProfile = async (e) => {
+    e.preventDefault()
+    setSavingProfile(true)
+    setProfileSuccess(false)
+    try {
+      const depts = deptInput
+        .split(',')
+        .map((d) => d.trim())
+        .filter(Boolean)
+      await api.hospitals.updateMyProfile({
+        name: hospName,
+        type: hospType,
+        address: hospAddress,
+        city: hospCity,
+        phone,
+        emergencyPhone: emergPhone,
+        departments: depts.length > 0 ? depts : ['General Medicine'],
+        location: {
+          type: 'Point',
+          coordinates: [Number(lng) || 77.5946, Number(lat) || 12.9716],
+        },
+      })
+      await reload()
+      setProfileSuccess(true)
+      setTimeout(() => setProfileSuccess(false), 4000)
+    } catch (err) {
+      alert(err.message || 'Failed to update hospital profile')
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser')
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(String(pos.coords.latitude.toFixed(4)))
+        setLng(String(pos.coords.longitude.toFixed(4)))
+      },
+      (_err) => {
+        alert('Could not retrieve current location')
+      }
+    )
+  }
+
   return (
     <div className="space-y-6">
       <Card className="p-6 bg-gradient-to-r from-brand-soft via-white to-surface">
@@ -125,9 +200,15 @@ export default function HospitalPortal() {
             <h2 className="mt-1.5 text-2xl font-bold text-ink">
               {hospital?.name || 'Hospital Administration Portal'}
             </h2>
-            <p className="text-[13px] text-slate">
+            <p className="text-[13px] text-slate flex items-center gap-2 mt-1">
+              <Icon name="location" className="size-4 text-muted" />
               {hospital ? `${hospital.address}, ${hospital.city}` : 'Setup hospital details & staff'}
             </p>
+            {hospital?.phone && (
+              <p className="text-[12px] text-muted mt-0.5">
+                Phone: {hospital.phone} {hospital.emergencyPhone ? `• Emergency: ${hospital.emergencyPhone}` : ''}
+              </p>
+            )}
           </div>
           <div className="text-right">
             <p className="text-[12px] font-medium text-muted">Active Staff: {doctors.length} Doctors</p>
@@ -136,7 +217,7 @@ export default function HospitalPortal() {
         </div>
       </Card>
 
-      <div className="flex border-b border-line">
+      <div className="flex border-b border-line flex-wrap">
         <button
           onClick={() => setActiveTab('appointments')}
           className={`border-b-2 px-4 py-3 text-[13.5px] font-semibold transition ${
@@ -160,6 +241,14 @@ export default function HospitalPortal() {
           }`}
         >
           Post Donation Events & Marathons ({events.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`border-b-2 px-4 py-3 text-[13.5px] font-semibold transition ${
+            activeTab === 'profile' ? 'border-brand text-brand' : 'border-transparent text-muted hover:text-ink'
+          }`}
+        >
+          Hospital Profile & Facilities
         </button>
       </div>
 
@@ -431,6 +520,154 @@ export default function HospitalPortal() {
             )}
           </div>
         </div>
+      )}
+
+      {activeTab === 'profile' && (
+        <Card className="p-6 max-w-3xl">
+          <CardHead
+            title="Hospital & Clinic Information"
+            sub="Update your facility profile, emergency contact numbers, and departments"
+          />
+
+          {profileSuccess && (
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-teal-soft p-3 text-[13px] text-teal">
+              <Icon name="check" className="size-4 shrink-0" strokeWidth={2.5} />
+              <span>Hospital profile successfully updated and published to the directory!</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSaveProfile} className="mt-5 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-[12px] font-medium text-slate">Hospital / Clinic Name</label>
+                <input
+                  required
+                  value={hospName}
+                  onChange={(e) => setHospName(e.target.value)}
+                  placeholder="e.g. Apollo City Hospital"
+                  className="mt-1 w-full rounded-lg bg-surface px-3 py-2 text-[13px] ring-1 ring-line outline-none focus:ring-2 focus:ring-brand"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium text-slate">Facility Type</label>
+                <select
+                  value={hospType}
+                  onChange={(e) => setHospType(e.target.value)}
+                  className="mt-1 w-full rounded-lg bg-surface px-3 py-2 text-[13px] ring-1 ring-line outline-none focus:ring-2 focus:ring-brand"
+                >
+                  <option value="Hospital">Hospital</option>
+                  <option value="Clinic">Clinic</option>
+                  <option value="Specialty Center">Specialty Center</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-[12px] font-medium text-slate">City</label>
+                <input
+                  required
+                  value={hospCity}
+                  onChange={(e) => setHospCity(e.target.value)}
+                  placeholder="e.g. Bangalore"
+                  className="mt-1 w-full rounded-lg bg-surface px-3 py-2 text-[13px] ring-1 ring-line outline-none focus:ring-2 focus:ring-brand"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium text-slate">Street Address</label>
+                <input
+                  required
+                  value={hospAddress}
+                  onChange={(e) => setHospAddress(e.target.value)}
+                  placeholder="e.g. 154/11 Bannerghatta Road"
+                  className="mt-1 w-full rounded-lg bg-surface px-3 py-2 text-[13px] ring-1 ring-line outline-none focus:ring-2 focus:ring-brand"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-[12px] font-medium text-slate">General Phone / Reception</label>
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+91 80 2630 4050"
+                  className="mt-1 w-full rounded-lg bg-surface px-3 py-2 text-[13px] ring-1 ring-line outline-none focus:ring-2 focus:ring-brand"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium text-slate">24/7 Emergency Helpline</label>
+                <input
+                  value={emergPhone}
+                  onChange={(e) => setEmergPhone(e.target.value)}
+                  placeholder="e.g. 1066 or +91 80 2630 1122"
+                  className="mt-1 w-full rounded-lg bg-surface px-3 py-2 text-[13px] ring-1 ring-line outline-none focus:ring-2 focus:ring-rose text-rose font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[12px] font-medium text-slate">
+                Departments (comma separated)
+              </label>
+              <input
+                value={deptInput}
+                onChange={(e) => setDeptInput(e.target.value)}
+                placeholder="Cardiology, Neurology, Pediatrics, Orthopedics, General Medicine"
+                className="mt-1 w-full rounded-lg bg-surface px-3 py-2 text-[13px] ring-1 ring-line outline-none focus:ring-2 focus:ring-brand"
+              />
+              <p className="mt-1 text-[11px] text-muted">
+                These departments will be searchable by patients in the directory.
+              </p>
+            </div>
+
+            <div className="rounded-lg bg-surface p-4 ring-1 ring-line space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[12.5px] font-semibold text-ink flex items-center gap-1.5">
+                  <Icon name="location" className="size-4 text-brand" /> Geographic Coordinates (GPS)
+                </span>
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  className="text-[12px] font-medium text-brand hover:underline"
+                >
+                  📍 Use My Current Location
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11.5px] font-medium text-slate">Latitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={lat}
+                    onChange={(e) => setLat(e.target.value)}
+                    className="mt-1 w-full rounded-lg bg-white px-3 py-1.5 text-[12.5px] ring-1 ring-line outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11.5px] font-medium text-slate">Longitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={lng}
+                    onChange={(e) => setLng(e.target.value)}
+                    className="mt-1 w-full rounded-lg bg-white px-3 py-1.5 text-[12.5px] ring-1 ring-line outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Button type="submit" disabled={savingProfile} className="min-w-[140px]">
+                {savingProfile ? 'Saving...' : 'Save Hospital Profile'}
+              </Button>
+            </div>
+          </form>
+        </Card>
       )}
     </div>
   )

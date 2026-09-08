@@ -145,7 +145,40 @@ export default function SignIn() {
             </Button>
           </form>
 
-          <p className="mt-6 flex items-start gap-2 rounded-lg bg-surface p-3.5 text-[12.5px] leading-relaxed text-slate ring-1 ring-line">
+          <div className="mt-5 border-t border-line/60 pt-4">
+            <p className="text-[11.5px] font-semibold uppercase tracking-[0.08em] text-muted">Quick Demo Accounts</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('signin')
+                  setEmail('aarav.menon@example.com')
+                  setPassword('MedIntel2025!')
+                  setError(null)
+                }}
+                className="flex flex-col items-start rounded-lg bg-surface p-2.5 text-left ring-1 ring-line transition hover:bg-brand-soft/50 hover:ring-brand/30"
+              >
+                <span className="text-[12px] font-semibold text-ink">👤 Patient Demo</span>
+                <span className="text-[11px] text-muted">Aarav Menon</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('signin')
+                  setEmail('hospital@example.com')
+                  setPassword('MedIntel2025!')
+                  setError(null)
+                }}
+                className="flex flex-col items-start rounded-lg bg-surface p-2.5 text-left ring-1 ring-line transition hover:bg-brand-soft/50 hover:ring-brand/30"
+              >
+                <span className="text-[12px] font-semibold text-ink">🏥 Hospital Admin</span>
+                <span className="text-[11px] text-muted">Apollo City Admin</span>
+              </button>
+            </div>
+          </div>
+
+          <p className="mt-5 flex items-start gap-2 rounded-lg bg-surface p-3.5 text-[12.5px] leading-relaxed text-slate ring-1 ring-line">
             <Icon name="shield" className="mt-px size-4 shrink-0 text-teal" />
             Credentials are hashed with bcrypt and sessions are stateless JWTs with short TTL and refresh rotation.
           </p>

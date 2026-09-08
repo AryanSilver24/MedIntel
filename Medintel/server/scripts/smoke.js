@@ -413,8 +413,18 @@ async function main() {
     check('hospital confirms patient appointment', confirmAppt.data?.status === 'Confirmed', confirmAppt.error || confirmAppt.data?.status)
   }
 
+  const profileUpdate = await call('POST', '/api/hospitals/my-profile', {
+    token: hospToken,
+    body: {
+      address: '154/11 Bannerghatta Road, Phase 2',
+      emergencyPhone: '1066',
+      departments: ['Cardiology', 'Neurology', 'Pediatrics', 'Oncology', 'Emergency Medicine'],
+    },
+  })
+  check('hospital updates facility profile', profileUpdate.status === 200 && profileUpdate.data?.departments?.includes('Emergency Medicine'), profileUpdate.error)
 
-
+  const myHospProfile = await call('GET', '/api/hospitals/my-profile', { token: hospToken })
+  check('hospital gets updated facility profile', myHospProfile.data?.hospital?.address === '154/11 Bannerghatta Road, Phase 2', myHospProfile.error)
   // ── Ownership isolation ───────────────────────────────────────────────────
   section('Per-resource ownership (RBAC)')
   const other = await call('POST', '/api/auth/register', {

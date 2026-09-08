@@ -38,7 +38,7 @@ export default function HospitalsDirectory({ onSelectHospital }) {
         })
         setLocating(false)
       },
-      (err) => {
+      (_err) => {
         setLocating(false)
         alert('Could not retrieve your GPS location. Please check browser permissions.')
       },

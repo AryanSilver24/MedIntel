@@ -27,7 +27,8 @@ export default function BookingForm({ hospital, doctor, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const selectedDateObj = new Date(date)
+  const [year, month, day] = (date || '').split('-').map(Number)
+  const selectedDateObj = year && month && day ? new Date(year, month - 1, day) : new Date(NaN)
   const selectedDayName = isNaN(selectedDateObj.getTime()) ? '' : DAY_MAP[selectedDateObj.getDay()]
   const isAvailableDay = doctor.availableDays?.length
     ? doctor.availableDays.includes(selectedDayName)

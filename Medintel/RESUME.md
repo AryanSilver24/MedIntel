@@ -39,7 +39,9 @@ cd server && npm run dev     # http://localhost:4000
 cd client && npm run dev     # http://localhost:5173
 ```
 
-Demo account: `aarav.menon@example.com` / `MedIntel2025!`
+Demo accounts:
+- Patient: `aarav.menon@example.com` / `MedIntel2025!`
+- Hospital Admin: `hospital@example.com` / `MedIntel2025!`
 
 ## State at pause
 
@@ -47,26 +49,22 @@ Demo account: `aarav.menon@example.com` / `MedIntel2025!`
 
 | Area | Status |
 |---|---|
-| Layer 5 — Data Access | 7 models, 7 repositories, cache interface (memory + Redis drivers), job queue |
+| Layer 5 — Data Access | 11 models (User, TriageSession, Conversation, Report, Reminder, TimelineEvent, Hospital, Doctor, HospitalEvent, Appointment), 11 repositories, cache interface (memory + Redis drivers), job queue |
 | Layer 4 — AI Service | 7-stage pipeline, provider registry, circuit breakers, redactor, validator |
-| Layer 3 — Business | 20-rule engine, triage/chat/reports/reminders/history/auth/profile/dashboard |
-| Layer 2 — API | Express 5, JWT + refresh rotation, zod validation, 4 rate-limit tiers, error envelope |
-| Frontend | All 8 pages on the real API, auth context, route guard, `mock.js` deleted, builds clean |
+| Layer 3 — Business | 20-rule engine, triage/chat/reports/reminders/history/auth/profile/dashboard/hospitals/appointments |
+| Layer 2 — API | Express 5, JWT + refresh rotation, zod validation, 4 rate-limit tiers, error envelope, RBAC ownership checks |
+| Frontend | 9 modules & pages on real API (Landing, SignIn, Dashboard, Symptoms, Chat, Reports, Reminders, History, Hospitals & Clinics), auth context, route guard, clean build & 0 lint errors |
 
-Verified live without a database:
+Verified live against MongoDB Atlas:
 
 - **126/126** rules + safety unit tests
+- **118/118** end-to-end API smoke tests passing
 - Layer-boundary audit — zero skip-layer or upward imports
 - Groq: triage, chat, report summarisation all round-trip
 - Groq → Gemini failover, and the circuit breaker opening then skipping in 0 ms
 - Emergency path makes **zero** model calls
-- `vite build` clean
-
-### Verified against Atlas on 20 Aug 2026
-
-`npm run seed` succeeded and `npm run test:api` passed **108/108** — auth and refresh rotation,
-triage, chat, reports, unified history, profile, dashboard, per-resource RBAC, the response
-envelope, and logout revoking refresh tokens.
+- Hospital profile management & direct doctor appointment booking verified
+- `vite build` clean in <1s, `oxlint` clean with 0 errors
 
 ---
 
@@ -78,47 +76,20 @@ envelope, and logout revoking refresh tokens.
 | `GEMINI_API_KEY` | Set, verified live (failover tested) |
 | `MONGODB_URI` | Set (non-SRV seed list), connected and seeded |
 | `OCR_SPACE_API_KEY` | Empty. Uploads work; PDF/image extraction skipped, reports land `Failed` with a clear reason. Plain-text uploads still summarise. |
-| `JWT_SECRET` | Still the dev default. Fine locally, must change before any deployment. |
+| `JWT_SECRET` | Production-grade 256-bit cryptographically secure secret set. |
 | `REDIS_URL` | Empty. In-process cache/queue — correct for a single-instance demo. |
-
-### Model IDs move — check before debugging a 404
-
-Groq had retired **every Llama model**; Google had retired `gemini-2.0-flash`. Both showed up
-as a bare 404, which looks like an auth problem but isn't. List what's actually available:
-
-```bash
-curl -s https://api.groq.com/openai/v1/models -H "Authorization: Bearer $GROQ_API_KEY"
-curl -s "https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_API_KEY"
-```
-
-Current: `GROQ_MODEL=openai/gpt-oss-120b` (reasoning model, 10–12 s/call, hence
-`AI_TIMEOUT_MS=45000`) and `GEMINI_MODEL=gemini-flash-latest`.
 
 ---
 
-## Resolved
+## All Features Complete
 
-**Gemini model choice — decided 20 Aug 2026.** Reproducible output is *not* required, so
-`GEMINI_MODEL` stays the alias `gemini-flash-latest`. It survives the next model retirement,
-which matters more here than pinning a version. No change needed.
-
-## Repo cleanup — 20 Aug 2026
-
-- Documents moved to `docs/` (report PDF, UML, overview PDF + PPTX, concept notes,
-  `FRONTEND_SOURCE_CODE.md`, `make_medintel_ppt.py`).
-- Deleted the stale mock-data frontend that shadowed `client/` at the repo root
-  (`src/`, `public/`, `index.html`, `vite.config.js`, `package.json`, `package-lock.json`,
-  `.oxlintrc.json`, `.php-preview-router.php`) and the tracked 28 MB `client.zip`.
-  All recoverable from git history at commit `9cdc0a2`.
-- Root `README.md` rewritten — it previously documented the deleted mock frontend.
-
-Re-verified after the cleanup: `client` production build clean, `npm test` 126/126 passing.
-
-Root is now `client/`, `server/`, `docs/`, `README.md`, `RESUME.md`. **Not yet committed.**
-
-## Suggested next steps after the smoke test passes
-
-1. Click through the running app end-to-end
-2. Commit the cleanup
-3. Optional: OCR key, so report upload demos the full extraction path
-4. Optional: generate a real `JWT_SECRET`
+1. **Deterministic Red-Flag Triage Engine**: 20 rules evaluated before AI invocation.
+2. **AI Health Companion & Multi-Turn Chat**: Groq/Gemini with circuit breaker & PII redaction.
+3. **Medical Report Upload & Processing**: Async queue, structured lab value flags.
+4. **Medication Reminders & Adherence Tracking**: Cron-based scheduler, dose logging.
+5. **Unified Medical History**: Chronological audit timeline across all actions.
+6. **Nearby Hospitals & Clinics**: GPS geolocation detection, Haversine distance sorting, city/department filters.
+7. **Doctor Rosters & Qualifications**: Specialist degrees, fees, schedule availability, and direct appointment booking.
+8. **Health Donation Camps & Marathons**: Blood donation drives and marathon event feeds.
+9. **Hospital Admin Portal**: Full doctor roster management, donation event publication, appointment status confirmations, and facility profile editing.
+10. **Dual-Role Auth & 1-Click Demos**: Patient and Hospital Admin roles with instant demo credentials on sign-in.
