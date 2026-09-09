@@ -3,10 +3,16 @@ import Icon from '../components/Icon'
 import { Card, CardHead, Badge, Button, PageHead, Empty } from '../components/ui'
 import { api } from '../lib/api'
 import { useApi } from '../lib/useApi'
+import { useAuth } from '../lib/auth'
 
-const filters = ['All', 'Triage', 'Chat', 'Report', 'Medication']
+const patientFilters = ['All', 'Triage', 'Chat', 'Report', 'Medication']
+const hospitalFilters = ['All', 'Account', 'Triage', 'Report', 'Medication']
 
 export default function History() {
+  const { user } = useAuth()
+  const isHospital = user?.role === 'hospital'
+  const filters = isHospital ? hospitalFilters : patientFilters
+
   const [filter, setFilter] = useState('All')
 
   const { data: events, meta, loading } = useApi(
@@ -15,6 +21,14 @@ export default function History() {
   )
   const dashboard = useApi(() => api.dashboard(), [])
   const sessions = useApi(() => api.triage.sessions({ limit: 100 }), [])
+  const hospitalProfile = useApi(
+    () => (isHospital ? api.hospitals.myProfile() : Promise.resolve(null)),
+    [isHospital]
+  )
+  const managedAppts = useApi(
+    () => (isHospital ? api.hospitals.managedAppointments() : Promise.resolve(null)),
+    [isHospital]
+  )
 
   const shown = events ?? []
   const escalations = (sessions.data ?? []).filter((s) => s.urgency === 'Emergency').length
@@ -23,9 +37,13 @@ export default function History() {
   return (
     <>
       <PageHead
-        eyebrow="Module 06"
-        title="Medical history"
-        sub="One chronological record of every session, report and medication change — assembled for a real consultation, not for legal or insurance use."
+        eyebrow={isHospital ? 'Facility Audit' : 'Module 06'}
+        title={isHospital ? 'Operations & Audit Timeline' : 'Medical history'}
+        sub={
+          isHospital
+            ? 'One chronological audit trail of facility actions, specialist changes, and administrative events.'
+            : 'One chronological record of every session, report and medication change — assembled for a real consultation, not for legal or insurance use.'
+        }
       >
         <Button variant="secondary" onClick={() => window.print()}>
           Export as PDF
@@ -53,12 +71,16 @@ export default function History() {
         <Card className="overflow-hidden">
           {shown.length === 0 ? (
             <Empty
-              title={loading ? 'Loading your history…' : 'Nothing recorded yet'}
-              sub="Entries appear here as you complete sessions, upload reports or change medication."
+              title={loading ? 'Loading audit events…' : 'Nothing recorded yet'}
+              sub={
+                isHospital
+                  ? 'Audit events will appear here as you manage appointments, doctor rosters, and facility operations.'
+                  : 'Entries appear here as you complete sessions, upload reports or change medication.'
+              }
               action={
                 !loading && (
-                  <Button as="link" to="/app/symptoms" size="sm">
-                    Start a session
+                  <Button as="link" to={isHospital ? '/app/appointments' : '/app/symptoms'} size="sm">
+                    {isHospital ? 'Appointments Desk' : 'Start a session'}
                   </Button>
                 )
               }
@@ -91,32 +113,58 @@ export default function History() {
 
         <div className="space-y-6">
           <Card>
-            <CardHead title="At a glance" sub="Your complete record" />
+            <CardHead
+              title={isHospital ? 'Facility at a glance' : 'At a glance'}
+              sub={isHospital ? 'Operational metrics' : 'Your complete record'}
+            />
             <dl className="divide-y divide-line text-[13px]">
-              {[
-                ['Symptom sessions', s ? String(s.triageSessions) : '—'],
-                ['Escalations triggered', sessions.data ? String(escalations) : '—'],
-                ['Reports uploaded', s ? String(s.reports) : '—'],
-                ['Active medication', s ? String(s.activeReminders) : '—'],
-                ['Average adherence', s?.overallAdherence != null ? `${Math.round(s.overallAdherence * 100)}%` : '—'],
-              ].map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between px-5 py-3">
-                  <dt className="text-muted">{k}</dt>
-                  <dd className="font-medium text-ink">{v}</dd>
-                </div>
-              ))}
+              {isHospital
+                ? [
+                    ['Specialist Doctors', String(hospitalProfile.data?.doctors?.length ?? 0)],
+                    ['Scheduled Camps', String(hospitalProfile.data?.events?.length ?? 0)],
+                    ['Consultations Managed', String(managedAppts.data?.length ?? 0)],
+                    ['Audit Log Entries', String(meta?.total ?? shown.length)],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-center justify-between px-5 py-3">
+                      <dt className="text-muted">{k}</dt>
+                      <dd className="font-medium text-ink">{v}</dd>
+                    </div>
+                  ))
+                : [
+                    ['Symptom sessions', s ? String(s.triageSessions) : '—'],
+                    ['Escalations triggered', sessions.data ? String(escalations) : '—'],
+                    ['Reports uploaded', s ? String(s.reports) : '—'],
+                    ['Active medication', s ? String(s.activeReminders) : '—'],
+                    ['Average adherence', s?.overallAdherence != null ? `${Math.round(s.overallAdherence * 100)}%` : '—'],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-center justify-between px-5 py-3">
+                      <dt className="text-muted">{k}</dt>
+                      <dd className="font-medium text-ink">{v}</dd>
+                    </div>
+                  ))}
             </dl>
           </Card>
 
           <Card>
-            <CardHead title="Export" sub="What a physician receives" />
+            <CardHead
+              title={isHospital ? 'Audit Compliance' : 'Export'}
+              sub={isHospital ? 'Regulatory guarantees' : 'What a physician receives'}
+            />
             <ul className="space-y-3 p-5">
-              {[
-                'Chronological session and report list',
-                'Profile: age, sex, allergies, conditions',
-                'Current medication and adherence figures',
-                'Every AI output marked as decision support',
-              ].map((t) => (
+              {(isHospital
+                ? [
+                    'Append-only immutable audit trail',
+                    'Role-based authorization and session logging',
+                    'Per-facility data isolation',
+                    'Timestamped clinician roster updates',
+                  ]
+                : [
+                    'Chronological session and report list',
+                    'Profile: age, sex, allergies, conditions',
+                    'Current medication and adherence figures',
+                    'Every AI output marked as decision support',
+                  ]
+              ).map((t) => (
                 <li key={t} className="flex gap-2.5 text-[13px] leading-relaxed text-slate">
                   <Icon name="check" className="mt-0.5 size-4 shrink-0 text-teal" strokeWidth={2.2} />
                   {t}

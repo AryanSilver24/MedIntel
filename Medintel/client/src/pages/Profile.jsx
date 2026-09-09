@@ -58,7 +58,131 @@ function ChipEditor({ label, tone, items, onChange, placeholder }) {
 }
 
 export default function Profile() {
+  const { user } = useAuth()
+  if (user?.role === 'hospital') {
+    return <HospitalAdminProfile />
+  }
+  return <PatientProfile />
+}
+
+function HospitalAdminProfile() {
   const { user, setUser, signOut } = useAuth()
+  const [name, setName] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name ?? '')
+    }
+  }, [user])
+
+  const save = useAction(async () => {
+    const { data } = await api.profile.update({ name })
+    setUser(data)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  })
+
+  return (
+    <>
+      <PageHead
+        eyebrow="Hospital Administration"
+        title="Hospital Account & Security"
+        sub="Manage administrator credentials, facility identity, session tokens, and security settings."
+      >
+        <Button onClick={() => save.run()} disabled={save.pending}>
+          {save.pending ? 'Saving…' : saved ? 'Saved' : 'Save changes'}
+        </Button>
+      </PageHead>
+
+      {save.error && (
+        <div className="mb-6 flex items-start gap-2.5 rounded-lg bg-rose-soft p-4">
+          <Icon name="alert" className="mt-px size-4 shrink-0 text-rose" />
+          <p className="text-[13px] leading-relaxed text-slate">{save.error.message}</p>
+        </div>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-start">
+        <div className="space-y-6">
+          <Card>
+            <CardHead title="Administrator & Facility Identity" />
+            <div className="space-y-4 p-5">
+              <div className="flex items-center gap-4">
+                <span className="grid size-14 place-items-center rounded-full bg-brand text-[16px] font-semibold text-white">
+                  {user?.initials}
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[16px] font-bold text-ink">{user?.name}</p>
+                    <Badge tone="brand">Hospital Administrator</Badge>
+                  </div>
+                  <p className="text-[13px] text-muted">{user?.email}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Administrator / Contact Name">
+                  <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} />
+                </Field>
+                <Field label="Hospital Account Email" hint="Your email is your sign-in identity and cannot be changed here.">
+                  <input className={`${inputCls} bg-surface text-muted`} value={user?.email ?? ''} readOnly />
+                </Field>
+              </div>
+
+              <div className="rounded-lg bg-surface p-4 ring-1 ring-line">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[11.5px] font-semibold uppercase tracking-wider text-brand">Facility Operations Profile</span>
+                    <p className="mt-0.5 text-[13px] text-slate">
+                      Update facility address, 24/7 emergency phone, specialist departments, and GPS coordinates.
+                    </p>
+                  </div>
+                  <Button as="link" to="/app/facility" size="sm" variant="secondary">
+                    Edit Facility Profile →
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHead title="Session & Credentials" />
+            <div className="px-5 py-4">
+              <p className="text-[13px] leading-relaxed text-slate">
+                Signing out revokes every active refresh token issued to this hospital administrator account across all workstations.
+              </p>
+              <Button variant="secondary" size="sm" className="mt-3" onClick={signOut}>
+                <Icon name="logout" className="size-4" /> Sign out everywhere
+              </Button>
+            </div>
+          </Card>
+
+          <Card>
+            <CardHead title="Enterprise Security & Privacy" />
+            <ul className="space-y-3 p-5">
+              {[
+                'Strict Role-Based Access Control (RBAC) enforced',
+                'Patient PII isolation compliant with healthcare privacy standards',
+                'Encrypted in transit (TLS 1.3) and at rest (AES-256)',
+                'Deterministic red-flag safety pipeline audits',
+              ].map((t) => (
+                <li key={t} className="flex gap-2.5 text-[13px] leading-relaxed text-slate">
+                  <Icon name="shield" className="mt-0.5 size-4 shrink-0 text-teal" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function PatientProfile() {
+  const { user, setUser } = useAuth()
 
   const [name, setName] = useState('')
   const [age, setAge] = useState('')

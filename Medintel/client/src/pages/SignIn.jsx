@@ -14,7 +14,6 @@ export default function SignIn() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('patient')
   const [error, setError] = useState(null)
   const [pending, setPending] = useState(false)
 

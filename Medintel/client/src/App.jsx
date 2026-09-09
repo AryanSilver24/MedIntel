@@ -12,6 +12,11 @@ import Reminders from './pages/Reminders'
 import History from './pages/History'
 import HospitalsModule from './pages/hospitals'
 import Profile from './pages/Profile'
+import AppointmentsPage from './pages/hospital/AppointmentsPage'
+import DoctorsPage from './pages/hospital/DoctorsPage'
+import EventsPage from './pages/hospital/EventsPage'
+import FacilityPage from './pages/hospital/FacilityPage'
+import HospitalNetworkPage from './pages/hospital/HospitalNetworkPage'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -34,6 +39,11 @@ export default function App() {
           <Route path="symptoms" element={<Symptoms />} />
           <Route path="chat" element={<Chat />} />
           <Route path="hospitals/*" element={<HospitalsModule />} />
+          <Route path="appointments" element={<AppointmentsPage />} />
+          <Route path="doctors" element={<DoctorsPage />} />
+          <Route path="events" element={<EventsPage />} />
+          <Route path="facility" element={<FacilityPage />} />
+          <Route path="network" element={<HospitalNetworkPage />} />
           <Route path="reports" element={<Reports />} />
           <Route path="reminders" element={<Reminders />} />
           <Route path="history" element={<History />} />

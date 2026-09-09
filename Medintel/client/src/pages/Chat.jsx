@@ -4,6 +4,7 @@ import { Card, CardHead, Badge, Button, PageHead } from '../components/ui'
 import { api } from '../lib/api'
 import { useApi } from '../lib/useApi'
 import { useAuth } from '../lib/auth'
+import PatientOnlyNotice from '../components/PatientOnlyNotice'
 
 const suggestions = [
   'How long does a cough usually last after a cold?',
@@ -13,6 +14,13 @@ const suggestions = [
 
 export default function Chat() {
   const { user } = useAuth()
+  if (user?.role === 'hospital') {
+    return <PatientOnlyNotice featureName="Clinical AI triage support chat" />
+  }
+  return <PatientChat user={user} />
+}
+
+function PatientChat({ user }) {
   const [draft, setDraft] = useState('')
   const [typing, setTyping] = useState(false)
   const [sendError, setSendError] = useState(null)

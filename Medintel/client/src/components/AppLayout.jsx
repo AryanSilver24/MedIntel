@@ -17,11 +17,11 @@ const patientNav = [
 
 const hospitalNav = [
   { to: '/app', label: 'Operations Desk', icon: 'home', end: true },
-  { to: '/app/hospitals?tab=appointments', matchTab: 'appointments', label: 'Appointments Queue', icon: 'clock' },
-  { to: '/app/hospitals?tab=doctors', matchTab: 'doctors', label: 'Doctor Roster', icon: 'user' },
-  { to: '/app/hospitals?tab=events', matchTab: 'events', label: 'Camps & Drives', icon: 'pulse' },
-  { to: '/app/hospitals?tab=profile', matchTab: 'profile', label: 'Facility Profile', icon: 'shield' },
-  { to: '/app/chat', label: 'Clinical AI Support', icon: 'chat' },
+  { to: '/app/appointments', label: 'Appointments Desk', icon: 'clock' },
+  { to: '/app/doctors', label: 'Doctor Roster', icon: 'user' },
+  { to: '/app/events', label: 'Camps & Drives', icon: 'pulse' },
+  { to: '/app/network', label: 'Hospital Network', icon: 'shield' },
+  { to: '/app/facility', label: 'Facility Profile', icon: 'home' },
   { to: '/app/history', label: 'Audit Timeline', icon: 'timeline' },
   { to: '/app/profile', label: 'Account Settings', icon: 'spark' },
 ]
@@ -44,16 +44,12 @@ export default function AppLayout() {
 
   const isHospital = user.role === 'hospital'
   const navItems = isHospital ? hospitalNav : patientNav
-  const currentTab = new URLSearchParams(location.search).get('tab')
 
   const isItemActive = (item) => {
-    if (item.matchTab) {
-      return location.pathname === '/app/hospitals' && currentTab === item.matchTab
-    }
     if (item.end) {
-      return location.pathname === item.to && !location.search
+      return location.pathname === item.to
     }
-    return location.pathname.startsWith(item.to) && (item.to !== '/app/hospitals' || !currentTab)
+    return location.pathname.startsWith(item.to)
   }
 
   const handleSignOut = async () => {

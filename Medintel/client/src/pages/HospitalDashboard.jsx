@@ -84,25 +84,25 @@ export default function HospitalDashboard() {
 
   const shortcuts = [
     {
-      to: '/app/hospitals?tab=appointments',
+      to: '/app/appointments',
       icon: 'clock',
-      title: 'Appointments Queue',
+      title: 'Appointments Desk',
       body: 'Confirm or reschedule incoming patient visit requests.',
     },
     {
-      to: '/app/hospitals?tab=doctors',
+      to: '/app/doctors',
       icon: 'user',
       title: 'Specialist Doctors',
       body: 'Manage medical qualifications, consultation fees & schedules.',
     },
     {
-      to: '/app/hospitals?tab=events',
+      to: '/app/events',
       icon: 'pulse',
       title: 'Donation Drives & Camps',
       body: 'Host blood donation marathons and stem cell drives.',
     },
     {
-      to: '/app/hospitals?tab=profile',
+      to: '/app/facility',
       icon: 'shield',
       title: 'Facility Profile & GPS',
       body: 'Configure emergency hotlines, departments & coordinates.',
@@ -124,10 +124,10 @@ export default function HospitalDashboard() {
         }
       >
         <div className="flex flex-wrap items-center gap-2">
-          <Button as="link" to="/app/hospitals?tab=appointments">
-            <Icon name="clock" className="size-4" /> Appointments Queue
+          <Button as="link" to="/app/appointments">
+            <Icon name="clock" className="size-4" /> Appointments Desk
           </Button>
-          <Button as="link" to="/app/hospitals?tab=doctors" variant="secondary">
+          <Button as="link" to="/app/doctors" variant="secondary">
             <Icon name="plus" className="size-4" /> Add Doctor
           </Button>
         </div>
@@ -174,7 +174,7 @@ export default function HospitalDashboard() {
               sub="Incoming and confirmed consultations for your medical staff"
               action={
                 <Link
-                  to="/app/hospitals?tab=appointments"
+                  to="/app/appointments"
                   className="text-[13px] font-medium text-brand hover:text-brand-dark"
                 >
                   View full queue →
@@ -311,7 +311,7 @@ export default function HospitalDashboard() {
                 title={loading ? 'Loading appointment queue…' : 'No appointments in this category'}
                 sub="Incoming patient appointment requests from the MedIntel directory will appear here in real-time."
                 action={
-                  <Button as="link" to="/app/hospitals?tab=profile" size="sm" variant="secondary">
+                  <Button as="link" to="/app/facility" size="sm" variant="secondary">
                     Verify Hospital Profile
                   </Button>
                 }
@@ -329,7 +329,7 @@ export default function HospitalDashboard() {
               sub={`${doctors.length} specialists listed`}
               action={
                 <Link
-                  to="/app/hospitals?tab=doctors"
+                  to="/app/doctors"
                   className="text-[12.5px] font-medium text-brand hover:text-brand-dark"
                 >
                   + Add Doctor
@@ -356,7 +356,7 @@ export default function HospitalDashboard() {
             ) : (
               <div className="p-5 text-center text-[12.5px] text-muted">
                 <p>No doctors added to this hospital yet.</p>
-                <Button as="link" to="/app/hospitals?tab=doctors" size="sm" className="mt-3">
+                <Button as="link" to="/app/doctors" size="sm" className="mt-3">
                   + Add First Doctor
                 </Button>
               </div>
@@ -370,7 +370,7 @@ export default function HospitalDashboard() {
               sub="Publicly displayed for emergency triage"
               action={
                 <Link
-                  to="/app/hospitals?tab=profile"
+                  to="/app/facility"
                   className="text-[12.5px] font-medium text-brand hover:text-brand-dark"
                 >
                   Edit
@@ -417,7 +417,7 @@ export default function HospitalDashboard() {
               sub={`${events.length} campaigns scheduled`}
               action={
                 <Link
-                  to="/app/hospitals?tab=events"
+                  to="/app/events"
                   className="text-[12.5px] font-medium text-brand hover:text-brand-dark"
                 >
                   + Post Drive
@@ -452,7 +452,7 @@ export default function HospitalDashboard() {
             ) : (
               <div className="p-5 text-center text-[12.5px] text-muted">
                 <p>No community drives currently scheduled.</p>
-                <Button as="link" to="/app/hospitals?tab=events" size="sm" variant="secondary" className="mt-3">
+                <Button as="link" to="/app/events" size="sm" variant="secondary" className="mt-3">
                   + Create Donation Event
                 </Button>
               </div>
