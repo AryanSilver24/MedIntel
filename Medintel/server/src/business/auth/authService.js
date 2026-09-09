@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { env } from '../../config/env.js'
-import { userRepository } from '../../data/repositories/index.js'
+import { userRepository, hospitalRepository } from '../../data/repositories/index.js'
 import { historyService } from '../history/historyService.js'
 import { audit, AUDIT } from '../../shared/audit.js'
 import { AuthError, ConflictError, NotFoundError } from '../../shared/errors.js'

@@ -99,6 +99,17 @@ async function main() {
   const dupe = await call('POST', '/api/auth/register', { body: { name: 'Aarav Menon', email, password } })
   check('duplicate email returns 409', dupe.status === 409, dupe.error)
 
+  const hospReg = await call('POST', '/api/auth/register', {
+    body: {
+      name: 'Smoke Test Clinic',
+      email: `clinic.${Date.now()}@medintel.test`,
+      password,
+      role: 'hospital',
+    },
+  })
+  check('register hospital role returns 201', hospReg.status === 201, hospReg.error)
+  check('register hospital role assigns role', hospReg.data?.user?.role === 'hospital', hospReg.data?.user)
+
   const badLogin = await call('POST', '/api/auth/login', { body: { email, password: 'wrongpassword' } })
   check('wrong password returns 401', badLogin.status === 401, badLogin.error)
   check('wrong password does not reveal whether the user exists', badLogin.error?.code === 'INVALID_CREDENTIALS')
