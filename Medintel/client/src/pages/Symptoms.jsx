@@ -3,6 +3,8 @@ import Icon from '../components/Icon'
 import { Card, CardHead, Badge, Button, Field, inputCls, PageHead } from '../components/ui'
 import { api } from '../lib/api'
 import { useAction } from '../lib/useApi'
+import { useAuth } from '../lib/auth'
+import PatientOnlyNotice from '../components/PatientOnlyNotice'
 
 /** Label shown to the user → symptom key the rules engine understands. */
 const symptomOptions = [
@@ -50,6 +52,14 @@ function Meter({ value, tone = 'brand' }) {
 }
 
 export default function Symptoms() {
+  const { user } = useAuth()
+  if (user?.role === 'hospital') {
+    return <PatientOnlyNotice featureName="Symptom analysis and triage intake" />
+  }
+  return <PatientSymptoms />
+}
+
+function PatientSymptoms() {
   const [step, setStep] = useState(0)
   const [selected, setSelected] = useState([])
   const [freeText, setFreeText] = useState('')

@@ -3,10 +3,20 @@ import Icon from '../components/Icon'
 import { Card, CardHead, Badge, Button, PageHead, Empty } from '../components/ui'
 import { api } from '../lib/api'
 import { useApi } from '../lib/useApi'
+import { useAuth } from '../lib/auth'
+import PatientOnlyNotice from '../components/PatientOnlyNotice'
 
 const ACCEPT = '.pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.txt'
 
 export default function Reports() {
+  const { user } = useAuth()
+  if (user?.role === 'hospital') {
+    return <PatientOnlyNotice featureName="Medical lab reports and OCR analysis" />
+  }
+  return <PatientReports />
+}
+
+function PatientReports() {
   const [drag, setDrag] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState(null)

@@ -1,14 +1,33 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import Icon from '../../components/Icon'
 import { Card, CardHead, Badge, Button } from '../../components/ui'
 import { useApi } from '../../lib/useApi'
 import { api } from '../../lib/api'
 
+const VALID_TABS = ['appointments', 'doctors', 'events', 'profile']
+
 export default function HospitalPortal() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tabFromUrl = searchParams.get('tab')
+
   const { data, loading, reload } = useApi(() => api.hospitals.myProfile(), [])
   const { data: managedAppts, reload: reloadAppts } = useApi(() => api.hospitals.managedAppointments(), [])
 
-  const [activeTab, setActiveTab] = useState('appointments')
+  const [activeTab, setActiveTab] = useState(
+    VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'appointments'
+  )
+
+  useEffect(() => {
+    if (tabFromUrl && VALID_TABS.includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl)
+    }
+  }, [tabFromUrl])
+
+  const setTab = (newTab) => {
+    setActiveTab(newTab)
+    setSearchParams({ tab: newTab })
+  }
 
   // New doctor state
   const [docName, setDocName] = useState('')
@@ -219,7 +238,7 @@ export default function HospitalPortal() {
 
       <div className="flex border-b border-line flex-wrap">
         <button
-          onClick={() => setActiveTab('appointments')}
+          onClick={() => setTab('appointments')}
           className={`border-b-2 px-4 py-3 text-[13.5px] font-semibold transition ${
             activeTab === 'appointments' ? 'border-brand text-brand' : 'border-transparent text-muted hover:text-ink'
           }`}
@@ -227,7 +246,7 @@ export default function HospitalPortal() {
           Patient Appointments ({appointments.length})
         </button>
         <button
-          onClick={() => setActiveTab('doctors')}
+          onClick={() => setTab('doctors')}
           className={`border-b-2 px-4 py-3 text-[13.5px] font-semibold transition ${
             activeTab === 'doctors' ? 'border-brand text-brand' : 'border-transparent text-muted hover:text-ink'
           }`}
@@ -235,7 +254,7 @@ export default function HospitalPortal() {
           Manage Doctors ({doctors.length})
         </button>
         <button
-          onClick={() => setActiveTab('events')}
+          onClick={() => setTab('events')}
           className={`border-b-2 px-4 py-3 text-[13.5px] font-semibold transition ${
             activeTab === 'events' ? 'border-brand text-brand' : 'border-transparent text-muted hover:text-ink'
           }`}
@@ -243,7 +262,7 @@ export default function HospitalPortal() {
           Post Donation Events & Marathons ({events.length})
         </button>
         <button
-          onClick={() => setActiveTab('profile')}
+          onClick={() => setTab('profile')}
           className={`border-b-2 px-4 py-3 text-[13.5px] font-semibold transition ${
             activeTab === 'profile' ? 'border-brand text-brand' : 'border-transparent text-muted hover:text-ink'
           }`}

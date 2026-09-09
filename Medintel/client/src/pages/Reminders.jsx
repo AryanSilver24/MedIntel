@@ -3,6 +3,8 @@ import Icon from '../components/Icon'
 import { Card, CardHead, Badge, Button, Field, inputCls, PageHead, Empty } from '../components/ui'
 import { api } from '../lib/api'
 import { useApi, useAction } from '../lib/useApi'
+import { useAuth } from '../lib/auth'
+import PatientOnlyNotice from '../components/PatientOnlyNotice'
 
 const WEEK = [
   ['S', 0],
@@ -15,6 +17,14 @@ const WEEK = [
 ]
 
 export default function Reminders() {
+  const { user } = useAuth()
+  if (user?.role === 'hospital') {
+    return <PatientOnlyNotice featureName="Personal medication tracking and reminders" />
+  }
+  return <PatientReminders />
+}
+
+function PatientReminders() {
   const { data: items, loading, reload } = useApi(() => api.reminders.list(), [])
 
   const [drug, setDrug] = useState('')

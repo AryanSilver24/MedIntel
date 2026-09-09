@@ -4,7 +4,7 @@ import { Card, CardHead, Badge, Button, PageHead, Empty } from '../components/ui
 import { api } from '../lib/api'
 import { useApi } from '../lib/useApi'
 import { useAuth } from '../lib/auth'
-
+import HospitalDashboard from './HospitalDashboard'
 
 function greeting() {
   const h = new Date().getHours()
@@ -15,6 +15,13 @@ function greeting() {
 
 export default function Dashboard() {
   const { user } = useAuth()
+  if (user?.role === 'hospital') {
+    return <HospitalDashboard />
+  }
+  return <PatientDashboard user={user} />
+}
+
+function PatientDashboard({ user }) {
   const { data, loading, error, reload } = useApi(() => api.dashboard(), [])
   const reminders = useApi(() => api.reminders.list(), [])
   const rules = useApi(() => api.triage.rules(), [])
