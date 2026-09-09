@@ -1,6 +1,30 @@
 import mongoose from 'mongoose'
+import dns from 'node:dns'
 import { env } from '../config/env.js'
 import { logger } from '../shared/logger.js'
+
+// Direct Node to use fast public resolvers to avoid local Wi-Fi DNS timeouts
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4'])
+} catch {
+  // Ignore in restricted sandboxes
+}
+
+function robustLookup(hostname, options, callback) {
+  if (typeof options === 'function') {
+    callback = options
+    options = {}
+  }
+  dns.resolve4(hostname, (err, addrs) => {
+    if (err || !addrs?.length) {
+      return dns.lookup(hostname, options, callback)
+    }
+    if (options?.all) {
+      return callback(null, addrs.map((a) => ({ address: a, family: 4 })))
+    }
+    return callback(null, addrs[0], 4)
+  })
+}
 
 let memoryServer = null
 
@@ -20,7 +44,7 @@ export async function connectDatabase() {
   }
 
   mongoose.set('strictQuery', true)
-  await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 })
+  await mongoose.connect(uri, { lookup: robustLookup, serverSelectionTimeoutMS: 15000 })
   logger.info('database connected', { mode, db: mongoose.connection.name })
   return { mode }
 }
